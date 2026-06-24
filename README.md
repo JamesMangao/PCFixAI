@@ -1,8 +1,8 @@
-# PCSmartFix
+# PCFixAI
 
 **AI-powered PC repair and diagnostics — fully offline.**
 
-PCSmartFix is a desktop application that diagnoses and fixes common Windows issues in one click. It scans your system, creates a restore point, and auto-repairs detected problems — all without sending any data to the cloud.
+PCFixAI is a desktop application that diagnoses and fixes common Windows issues in one click. It scans your system, creates a restore point, and auto-repairs detected problems — all without sending any data to the cloud.
 
 ---
 
