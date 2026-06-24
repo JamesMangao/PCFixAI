@@ -23,9 +23,12 @@ PCFixAI is a desktop application that diagnoses and fixes common Windows issues 
 
 ## Screenshots
 
->**Main Dashboard**
-![Main dashboard](assets/dashboard.png)
+>**Dashboard**
+![Dashboard](assets/dashboard.png)
 ---
+
+>**Toolkit**
+![Toolkit](assets/toolkit.png)
 
 ## Tech Stack
 
