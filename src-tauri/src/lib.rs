@@ -1,5 +1,5 @@
 // ============================================================
-//  PCSmartFix — Tauri 2 Backend Core
+//  PCFixAI — Tauri 2 Backend Core
 //  Handles: privilege checks, command execution, event streaming,
 //  scan orchestration, rollback checkpoints, and AI agent loop.
 // ============================================================
@@ -561,7 +561,7 @@ async fn scan_system(
         serde_json::json!({ "phase": "starting", "message": "Creating system restore point…" }),
     );
 
-    let restore_created = create_restore_point(&app, "PCSmartFix Pre-Scan").await;
+    let restore_created = create_restore_point(&app, "PCFixAI Pre-Scan").await;
 
     let _ = app.emit(
         "scan-status",
@@ -870,7 +870,7 @@ $apps | Sort-Object Name -Unique | ConvertTo-Json -Depth 2
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tracing_subscriber::fmt()
-        .with_env_filter("pcsmartfix=debug,tauri=warn")
+        .with_env_filter("PCFixAI=debug,tauri=warn")
         .init();
 
     let state = Arc::new(AppState::default());
@@ -896,5 +896,5 @@ pub fn run() {
             get_installed_apps,
         ])
         .run(tauri::generate_context!())
-        .expect("PCSmartFix failed to start");
+        .expect("PCFixAI failed to start");
 }

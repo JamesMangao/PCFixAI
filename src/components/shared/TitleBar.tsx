@@ -28,7 +28,7 @@ export function TitleBar() {
           color: 'var(--text-primary)',
           letterSpacing: '0.04em',
         }}>
-          PCSmartFix
+          PCFixAI
         </span>
         <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
           System Repair

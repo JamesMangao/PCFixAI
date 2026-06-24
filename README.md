@@ -54,8 +54,8 @@ PCFixAI is a desktop application that diagnoses and fixes common Windows issues 
 
 ```powershell
 # Clone the repository
-git clone https://github.com/JamesMangao/PCSmartFix.git
-cd PCSmartFix
+git clone https://github.com/JamesMangao/PCFixAI.git
+cd PCFixAI
 
 # Install dependencies
 npm install

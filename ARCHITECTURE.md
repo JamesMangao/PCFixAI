@@ -81,7 +81,7 @@ PCFixAI/
 ### UAC Elevation Flow
 
 ```
-User launches PCSmartFix.exe
+User launches PCFixAI.exe
         │
         ▼
 Tauri reads app.manifest (requestedExecutionLevel = requireAdministrator)
@@ -201,13 +201,13 @@ The Assistant chat provides instant actions that execute real commands via `runR
 
 ## 6. Rollback Architecture
 
-Before any deep system mutation, PCSmartFix:
+Before any deep system mutation, PCFixAI:
 
 1. Calls `Checkpoint-Computer` (Windows System Restore) — creates a named restore point.
 2. On fix failure: exposes a "Revert" button in the UI that can invoke rollback.
 
 ```
-Restore point created: "PCSmartFix Pre-Scan"
+Restore point created: "PCFixAI Pre-Scan"
          │
          ▼ (if deep fix fails or user requests revert)
 rstrui.exe /runonce    ← or programmatic: SystemRestore API via windows-rs

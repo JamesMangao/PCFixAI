@@ -27,5 +27,5 @@ fn main() {
     );
 
     let attrs = tauri_build::Attributes::new().windows_attributes(windows);
-    tauri_build::try_build(attrs).expect("PCSmartFix build script failed");
+    tauri_build::try_build(attrs).expect("PCFixAI build script failed");
 }

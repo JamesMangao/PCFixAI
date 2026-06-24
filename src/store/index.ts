@@ -64,7 +64,7 @@ export interface AppSettings {
   backgroundScans: boolean
 }
 
-interface PCSmartFixStore {
+interface PCFixAIStore {
   mode: AppMode
   setMode: (m: AppMode) => void
 
@@ -117,7 +117,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   backgroundScans: false,
 }
 
-export const useStore = create<PCSmartFixStore>()(
+export const useStore = create<PCFixAIStore>()(
   persist(
     (set) => ({
       mode: 'diagnose',
@@ -179,7 +179,7 @@ export const useStore = create<PCSmartFixStore>()(
       _hydrated: false,
     }),
     {
-      name: 'pcsmartfix-storage',
+      name: 'PCFixAI-storage',
       partialize: (state) => ({
         jobs: state.jobs,
         chatMessages: state.chatMessages,
@@ -191,9 +191,9 @@ export const useStore = create<PCSmartFixStore>()(
       },
       merge: (persisted, current) => ({
         ...current,
-        ...(persisted as Partial<PCSmartFixStore>),
-        chatMessages: (persisted as Partial<PCSmartFixStore>)?.chatMessages?.length
-          ? (persisted as Partial<PCSmartFixStore>).chatMessages!
+        ...(persisted as Partial<PCFixAIStore>),
+        chatMessages: (persisted as Partial<PCFixAIStore>)?.chatMessages?.length
+          ? (persisted as Partial<PCFixAIStore>).chatMessages!
           : current.chatMessages,
       }),
     }
