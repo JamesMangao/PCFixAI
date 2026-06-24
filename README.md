@@ -23,7 +23,7 @@ PCSmartFix is a desktop application that diagnoses and fixes common Windows issu
 
 ## Screenshots
 
->![Main dashboard](src\img\dashboard.png)
+>![Main dashboard](assets/dashboard.png)
 ---
 
 ## Tech Stack
