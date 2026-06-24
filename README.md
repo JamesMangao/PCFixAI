@@ -18,7 +18,6 @@ PCFixAI is a desktop application that diagnoses and fixes common Windows issues 
 - **Privilege Detection** — Automatically detects admin elevation and warns when deep fixes are restricted
 - **Toolkit** — 8 categories of system tools: Performance, Hardware, Cleanup, Troubleshooting, Advanced, Drivers, External Tools, and System Managers (Startup, Processes, Services, Installed Apps)
 - **Fully Offline** — No internet connection required, no data leaves your machine
-![alt text](image.png)
 ---
 
 ## Screenshots
