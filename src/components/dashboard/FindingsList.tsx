@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Finding } from '../../store'
+import { Finding, useStore, JobEntry } from '../../store'
 import { executeFix } from '../../hooks/useTauriEvents'
 
 const SEVERITY_COLOR: Record<string, string> = {
@@ -36,7 +36,28 @@ export function FindingsList({ findings }: FindingsListProps) {
   async function handleFix(finding: Finding) {
     setFixingId(finding.id)
     try {
-      await executeFix(finding.category, finding.title)
+      const success = await executeFix(finding.category, finding.title)
+      const job: JobEntry = {
+        id: Date.now().toString(),
+        timestamp: new Date().toISOString(),
+        category: 'Fix',
+        action: `Fix: ${finding.title}`,
+        status: success ? 'success' : 'failed',
+        output: [success ? `Fixed ${finding.category} issue: ${finding.title}` : `Failed to fix: ${finding.title}`],
+        exitCode: success ? 0 : 1,
+      }
+      useStore.getState().updateJob(job)
+    } catch {
+      const job: JobEntry = {
+        id: Date.now().toString(),
+        timestamp: new Date().toISOString(),
+        category: 'Fix',
+        action: `Fix: ${finding.title}`,
+        status: 'failed',
+        output: [`Error fixing: ${finding.title}`],
+        exitCode: 1,
+      }
+      useStore.getState().updateJob(job)
     } finally {
       setFixingId(null)
     }

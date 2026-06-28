@@ -334,6 +334,197 @@ async fn check_network_health(app: &AppHandle) -> Vec<Finding> {
     findings
 }
 
+async fn check_disk_space(app: &AppHandle) -> Vec<Finding> {
+    let mut findings = Vec::new();
+    let id = Uuid::new_v4().to_string();
+
+    #[cfg(target_os = "windows")]
+    {
+        let result = run_command_streaming(
+            app,
+            &id,
+            "powershell",
+            &[
+                "-NonInteractive", "-NoProfile", "-Command",
+                "Get-CimInstance Win32_LogicalDisk -Filter \"DeviceID='C:'\" | Select-Object FreeSpace, Size | ConvertTo-Json",
+            ],
+        ).await;
+
+        if let Ok((0, lines)) = result {
+            let output = lines.join("\n");
+            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&output) {
+                let free = json["FreeSpace"].as_f64().unwrap_or(0.0);
+                let total = json["Size"].as_f64().unwrap_or(1.0);
+                let pct = (free / total) * 100.0;
+                if pct < 10.0 {
+                    findings.push(Finding {
+                        id: Uuid::new_v4().to_string(),
+                        severity: Severity::Critical,
+                        category: "Performance".into(),
+                        title: format!("Critical low disk space — {:.1}% free on C:", pct),
+                        description: "Less than 10% free disk space can cause system instability and slow performance.".into(),
+                        fix_available: true,
+                        auto_fixable: true,
+                    });
+                } else if pct < 20.0 {
+                    findings.push(Finding {
+                        id: Uuid::new_v4().to_string(),
+                        severity: Severity::Medium,
+                        category: "Performance".into(),
+                        title: format!("Low disk space — {:.1}% free on C:", pct),
+                        description: "Less than 20% free disk space may impact performance.".into(),
+                        fix_available: true,
+                        auto_fixable: true,
+                    });
+                }
+            }
+        }
+    }
+
+    findings
+}
+
+async fn check_high_cpu(app: &AppHandle) -> Vec<Finding> {
+    let mut findings = Vec::new();
+    let id = Uuid::new_v4().to_string();
+
+    #[cfg(target_os = "windows")]
+    {
+        let result = run_command_streaming(
+            app,
+            &id,
+            "powershell",
+            &[
+                "-NonInteractive", "-NoProfile", "-Command",
+                "(Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average",
+            ],
+        ).await;
+
+        if let Ok((0, lines)) = result {
+            let output = lines.join("").trim().to_string();
+            if let Ok(cpu_pct) = output.parse::<f64>() {
+                if cpu_pct > 90.0 {
+                    findings.push(Finding {
+                        id: Uuid::new_v4().to_string(),
+                        severity: Severity::High,
+                        category: "Performance".into(),
+                        title: format!("High CPU usage — {:.0}%", cpu_pct),
+                        description: "CPU usage is critically high. Check for resource-hungry processes in Task Manager.".into(),
+                        fix_available: false,
+                        auto_fixable: false,
+                    });
+                } else if cpu_pct > 70.0 {
+                    findings.push(Finding {
+                        id: Uuid::new_v4().to_string(),
+                        severity: Severity::Medium,
+                        category: "Performance".into(),
+                        title: format!("Elevated CPU usage — {:.0}%", cpu_pct),
+                        description: "CPU usage is above normal. Monitor for sustained high usage.".into(),
+                        fix_available: false,
+                        auto_fixable: false,
+                    });
+                }
+            }
+        }
+    }
+
+    findings
+}
+
+async fn check_high_memory(app: &AppHandle) -> Vec<Finding> {
+    let mut findings = Vec::new();
+    let id = Uuid::new_v4().to_string();
+
+    #[cfg(target_os = "windows")]
+    {
+        let result = run_command_streaming(
+            app,
+            &id,
+            "powershell",
+            &[
+                "-NonInteractive", "-NoProfile", "-Command",
+                "$os = Get-CimInstance Win32_OperatingSystem; $total = $os.TotalVisibleMemorySize; $free = $os.FreePhysicalMemory; $usedPct = [math]::Round((($total - $free) / $total) * 100, 0); Write-Output $usedPct",
+            ],
+        ).await;
+
+        if let Ok((0, lines)) = result {
+            let output = lines.join("").trim().to_string();
+            if let Ok(ram_pct) = output.parse::<f64>() {
+                if ram_pct > 90.0 {
+                    findings.push(Finding {
+                        id: Uuid::new_v4().to_string(),
+                        severity: Severity::High,
+                        category: "Performance".into(),
+                        title: format!("High memory usage — {:.0}% RAM used", ram_pct),
+                        description: "Memory usage is critically high. Close unnecessary applications or add more RAM.".into(),
+                        fix_available: true,
+                        auto_fixable: true,
+                    });
+                } else if ram_pct > 80.0 {
+                    findings.push(Finding {
+                        id: Uuid::new_v4().to_string(),
+                        severity: Severity::Medium,
+                        category: "Performance".into(),
+                        title: format!("Elevated memory usage — {:.0}% RAM used", ram_pct),
+                        description: "Memory usage is above normal. Monitor for memory leaks.".into(),
+                        fix_available: false,
+                        auto_fixable: false,
+                    });
+                }
+            }
+        }
+    }
+
+    findings
+}
+
+async fn check_startup_programs(app: &AppHandle) -> Vec<Finding> {
+    let mut findings = Vec::new();
+    let id = Uuid::new_v4().to_string();
+
+    #[cfg(target_os = "windows")]
+    {
+        let result = run_command_streaming(
+            app,
+            &id,
+            "powershell",
+            &[
+                "-NonInteractive", "-NoProfile", "-Command",
+                "(Get-CimInstance Win32_StartupCommand -ErrorAction SilentlyContinue).Count",
+            ],
+        ).await;
+
+        if let Ok((0, lines)) = result {
+            let output = lines.join("").trim().to_string();
+            if let Ok(count) = output.parse::<i32>() {
+                if count > 15 {
+                    findings.push(Finding {
+                        id: Uuid::new_v4().to_string(),
+                        severity: Severity::High,
+                        category: "Performance".into(),
+                        title: format!("{} startup programs detected", count),
+                        description: "Too many startup programs slow down boot time. Disable unnecessary ones via Toolkit → System Managers.".into(),
+                        fix_available: true,
+                        auto_fixable: true,
+                    });
+                } else if count > 8 {
+                    findings.push(Finding {
+                        id: Uuid::new_v4().to_string(),
+                        severity: Severity::Medium,
+                        category: "Performance".into(),
+                        title: format!("{} startup programs detected", count),
+                        description: "Consider disabling non-essential startup programs to improve boot time.".into(),
+                        fix_available: true,
+                        auto_fixable: false,
+                    });
+                }
+            }
+        }
+    }
+
+    findings
+}
+
 // ─────────────────────────────────────────────────────────────
 //  AI Agent Loop
 // ─────────────────────────────────────────────────────────────
@@ -571,9 +762,33 @@ async fn scan_system(
 
     let _ = app.emit(
         "scan-status",
+        serde_json::json!({ "phase": "scanning", "message": "Checking disk space…" }),
+    );
+    findings.extend(check_disk_space(&app).await);
+
+    let _ = app.emit(
+        "scan-status",
         serde_json::json!({ "phase": "scanning", "message": "Checking network health…" }),
     );
     findings.extend(check_network_health(&app).await);
+
+    let _ = app.emit(
+        "scan-status",
+        serde_json::json!({ "phase": "scanning", "message": "Checking CPU usage…" }),
+    );
+    findings.extend(check_high_cpu(&app).await);
+
+    let _ = app.emit(
+        "scan-status",
+        serde_json::json!({ "phase": "scanning", "message": "Checking memory usage…" }),
+    );
+    findings.extend(check_high_memory(&app).await);
+
+    let _ = app.emit(
+        "scan-status",
+        serde_json::json!({ "phase": "scanning", "message": "Checking startup programs…" }),
+    );
+    findings.extend(check_startup_programs(&app).await);
 
     let scan_id = Uuid::new_v4().to_string();
     let result = ScanResult {

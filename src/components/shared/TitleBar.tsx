@@ -11,7 +11,7 @@ export function TitleBar() {
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '10px 16px',
-        background: 'var(--bg-elevated)',
+        background: 'linear-gradient(180deg, rgba(25,35,50,0.98) 0%, var(--bg-elevated) 100%)',
         borderBottom: '1px solid var(--border-dim)',
         userSelect: 'none',
         flexShrink: 0,
@@ -35,7 +35,7 @@ export function TitleBar() {
         </span>
       </div>
 
-      <div style={{ display: 'flex', gap: 6 }}>
+      <div style={{ display: 'flex', gap: 2 }}>
         <WindowButton label="—" onClick={() => appWindow.minimize()} />
         <WindowButton label="✕" onClick={() => appWindow.close()} danger />
       </div>
@@ -48,24 +48,31 @@ function WindowButton({ label, onClick, danger }: { label: string; onClick: () =
     <button
       onClick={onClick}
       style={{
-        width: 28,
+        width: 32,
         height: 28,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         background: 'transparent',
-        border: '1px solid var(--border-dim)',
+        border: 'none',
         borderRadius: 'var(--r1)',
-        color: danger ? 'var(--danger)' : 'var(--text-muted)',
+        color: danger ? 'var(--text-muted)' : 'var(--text-muted)',
         fontSize: 12,
         cursor: 'pointer',
-        transition: 'background 0.15s',
+        transition: 'all var(--transition-fast)',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.background = danger ? 'rgba(255,82,82,0.15)' : 'var(--bg-surface)'
+        if (danger) {
+          e.currentTarget.style.background = 'var(--danger)'
+          e.currentTarget.style.color = 'white'
+        } else {
+          e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+          e.currentTarget.style.color = 'var(--text-primary)'
+        }
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.background = 'transparent'
+        e.currentTarget.style.color = danger ? 'var(--text-muted)' : 'var(--text-muted)'
       }}
     >
       {label}

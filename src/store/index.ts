@@ -62,6 +62,9 @@ export interface AppSettings {
   autoFixThreshold: string
   autoRestorePoints: boolean
   backgroundScans: boolean
+  theme: string
+  notifications: boolean
+  logRetention: number
 }
 
 interface PCFixAIStore {
@@ -115,6 +118,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   autoFixThreshold: 'high',
   autoRestorePoints: true,
   backgroundScans: false,
+  theme: 'dark',
+  notifications: true,
+  logRetention: 30,
 }
 
 export const useStore = create<PCFixAIStore>()(

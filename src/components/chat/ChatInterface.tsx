@@ -1,12 +1,14 @@
 import { useStore } from '../../store'
 import { Bot, User, Activity, Zap, Wifi, HardDrive, Cpu, ArrowUpCircle, Trash2 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useLocalAI } from '../../hooks/useLocalAI'
 
 export function ChatInterface() {
   const { chatMessages, appendChatMessage, clearChat } = useStore()
   const { sendMessage, isGenerating } = useLocalAI()
   const [input, setInput] = useState('')
+  const [inputFocused, setInputFocused] = useState(false)
   const feedRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -47,8 +49,13 @@ export function ChatInterface() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--s6)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s3)' }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Bot size={24} color="var(--bg-void)" />
+          <div style={{
+            width: 40, height: 40, borderRadius: 10,
+            background: 'linear-gradient(135deg, #00d4ff, #0099cc)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 2px 12px rgba(0,212,255,0.3)',
+          }}>
+            <Bot size={24} color="white" />
           </div>
           <div>
             <h2 style={{ fontSize: 20, margin: 0, fontWeight: 600 }}>PCFixAI <span style={{ fontSize: 12, color: 'var(--success)', fontWeight: 500 }}>• Online</span></h2>
@@ -63,10 +70,10 @@ export function ChatInterface() {
               padding: '6px 12px', background: 'transparent',
               border: '1px solid var(--border-mid)', borderRadius: 'var(--r2)',
               color: 'var(--text-secondary)', fontSize: 12, fontWeight: 500,
-              cursor: 'pointer', transition: 'all 0.2s',
+              cursor: 'pointer', transition: 'all var(--transition-fast)',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--danger)'; e.currentTarget.style.color = 'var(--danger)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-mid)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--danger)'; e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.background = 'rgba(255,82,82,0.08)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-mid)'; e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'transparent' }}
           >
             <Trash2 size={13} />
             Clear Chat
@@ -80,37 +87,93 @@ export function ChatInterface() {
         padding: 'var(--s4)', background: 'var(--bg-elevated)', borderRadius: 'var(--r3)',
         border: '1px solid var(--border-dim)'
       }}>
-        {chatMessages.map(msg => (
-          <div key={msg.id} style={{
-            display: 'flex', gap: 'var(--s3)',
-            alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-            maxWidth: '85%'
-          }}>
-            {msg.role === 'assistant' && (
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--accent-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <AnimatePresence initial={false}>
+          {chatMessages.map(msg => (
+            <motion.div
+              key={msg.id}
+              initial={{ opacity: 0, y: 12, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                display: 'flex', gap: 'var(--s3)',
+                alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                maxWidth: '85%'
+              }}
+            >
+              {msg.role === 'assistant' && (
+                <div style={{
+                  width: 32, height: 32, borderRadius: 8,
+                  background: 'var(--accent-dim)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  border: '1px solid rgba(0,212,255,0.15)',
+                }}>
+                  <Bot size={18} color="var(--accent)" />
+                </div>
+              )}
+              
+              <div style={{
+                background: msg.role === 'user'
+                  ? 'linear-gradient(135deg, #00d4ff, #00b8d9)'
+                  : 'var(--bg-surface)',
+                color: msg.role === 'user' ? 'var(--bg-void)' : 'var(--text-primary)',
+                padding: 'var(--s3) var(--s4)',
+                borderRadius: msg.role === 'user' ? 'var(--r3) var(--r3) var(--r1) var(--r3)' : 'var(--r3) var(--r3) var(--r3) var(--r1)',
+                fontSize: 14, lineHeight: 1.6,
+                border: msg.role === 'user' ? 'none' : '1px solid var(--border-mid)',
+                whiteSpace: 'pre-wrap',
+                boxShadow: msg.role === 'user'
+                  ? '0 2px 8px rgba(0,212,255,0.2)'
+                  : 'var(--shadow-sm)',
+              }}>
+                {msg.content}
+              </div>
+
+              {msg.role === 'user' && (
+                <div style={{
+                  width: 32, height: 32, borderRadius: 8,
+                  background: 'var(--bg-surface)', border: '1px solid var(--border-mid)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}>
+                  <User size={18} color="var(--text-secondary)" />
+                </div>
+              )}
+            </motion.div>
+          ))}
+        </AnimatePresence>
+
+        {/* Typing indicator */}
+        <AnimatePresence>
+          {isGenerating && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              style={{
+                display: 'flex', gap: 'var(--s3)', alignSelf: 'flex-start', maxWidth: '85%'
+              }}
+            >
+              <div style={{
+                width: 32, height: 32, borderRadius: 8,
+                background: 'var(--accent-dim)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                border: '1px solid rgba(0,212,255,0.15)',
+              }}>
                 <Bot size={18} color="var(--accent)" />
               </div>
-            )}
-            
-            <div style={{
-              background: msg.role === 'user' ? 'var(--accent)' : 'var(--bg-surface)',
-              color: msg.role === 'user' ? 'var(--bg-void)' : 'var(--text-primary)',
-              padding: 'var(--s3) var(--s4)',
-              borderRadius: 'var(--r2)',
-              fontSize: 14, lineHeight: 1.5,
-              border: msg.role === 'user' ? 'none' : '1px solid var(--border-mid)',
-              whiteSpace: 'pre-wrap'
-            }}>
-              {msg.content}
-            </div>
-
-            {msg.role === 'user' && (
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--bg-surface)', border: '1px solid var(--border-mid)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <User size={18} color="var(--text-secondary)" />
+              <div style={{
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-mid)',
+                borderRadius: 'var(--r3) var(--r3) var(--r3) var(--r1)',
+                padding: '12px 16px',
+                display: 'flex', alignItems: 'center', gap: 6,
+              }}>
+                <div style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)', animation: 'pulse 1.4s ease-in-out infinite' }} />
+                <div style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)', animation: 'pulse 1.4s ease-in-out infinite 0.2s' }} />
+                <div style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)', animation: 'pulse 1.4s ease-in-out infinite 0.4s' }} />
               </div>
-            )}
-          </div>
-        ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Quick Actions */}
@@ -118,25 +181,32 @@ export function ChatInterface() {
         {quickActions.map(action => {
           const Icon = action.icon
           return (
-            <button key={action.label} onClick={action.onClick} style={{
-              display: 'flex', alignItems: 'center', gap: 'var(--s2)',
-              padding: '8px 16px', background: 'transparent',
-              border: '1px solid var(--border-mid)', borderRadius: 20,
-              color: 'var(--text-primary)', fontSize: 13,
-              cursor: 'pointer', transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'var(--accent)'
-              e.currentTarget.style.color = 'var(--accent)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'var(--border-mid)'
-              e.currentTarget.style.color = 'var(--text-primary)'
-            }}
+            <motion.button
+              key={action.label}
+              onClick={action.onClick}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 'var(--s2)',
+                padding: '8px 16px', background: 'transparent',
+                border: '1px solid var(--border-mid)', borderRadius: 20,
+                color: 'var(--text-primary)', fontSize: 13,
+                cursor: 'pointer', transition: 'all var(--transition-fast)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--accent)'
+                e.currentTarget.style.color = 'var(--accent)'
+                e.currentTarget.style.background = 'var(--accent-subtle)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--border-mid)'
+                e.currentTarget.style.color = 'var(--text-primary)'
+                e.currentTarget.style.background = 'transparent'
+              }}
             >
               <Icon size={16} />
               {action.label}
-            </button>
+            </motion.button>
           )
         })}
       </div>
@@ -144,13 +214,18 @@ export function ChatInterface() {
       {/* Input */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 'var(--s3)', marginTop: 'var(--s4)',
-        background: 'var(--bg-elevated)', border: '1px solid var(--border-mid)',
-        padding: 'var(--s2) var(--s3)', borderRadius: 'var(--r3)'
+        background: 'var(--bg-elevated)',
+        border: inputFocused ? '1px solid var(--accent)' : '1px solid var(--border-mid)',
+        padding: 'var(--s2) var(--s3)', borderRadius: 'var(--r3)',
+        boxShadow: inputFocused ? '0 0 0 3px var(--accent-dim), 0 0 20px rgba(0,212,255,0.1)' : 'none',
+        transition: 'all var(--transition-fast)',
       }}>
         <input 
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleSend()}
+          onFocus={() => setInputFocused(true)}
+          onBlur={() => setInputFocused(false)}
           placeholder="Ask about PC issues, or use a quick action above..."
           disabled={isGenerating}
           style={{
@@ -158,14 +233,25 @@ export function ChatInterface() {
             color: 'var(--text-primary)', fontSize: 14, fontFamily: 'inherit'
           }}
         />
-        <button onClick={handleSend} disabled={isGenerating || !input.trim()} style={{
-          width: 32, height: 32, borderRadius: '50%', background: 'var(--accent-dim)',
-          border: 'none', color: 'var(--accent)', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          opacity: (isGenerating || !input.trim()) ? 0.5 : 1
-        }}>
+        <motion.button
+          onClick={handleSend}
+          disabled={isGenerating || !input.trim()}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          style={{
+            width: 34, height: 34, borderRadius: '50%',
+            background: (isGenerating || !input.trim()) ? 'var(--accent-dim)' : 'linear-gradient(135deg, #00d4ff, #0099cc)',
+            border: 'none',
+            color: (isGenerating || !input.trim()) ? 'var(--accent)' : 'white',
+            cursor: (isGenerating || !input.trim()) ? 'default' : 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            opacity: (isGenerating || !input.trim()) ? 0.5 : 1,
+            boxShadow: (isGenerating || !input.trim()) ? 'none' : '0 2px 8px rgba(0,212,255,0.3)',
+            transition: 'all var(--transition-fast)',
+          }}
+        >
           <ArrowUpCircle size={20} />
-        </button>
+        </motion.button>
       </div>
     </div>
   )

@@ -19,7 +19,7 @@ export function HistoryView() {
   return (
     <div style={{
       width: '100%', maxWidth: 1000, margin: '0 auto', padding: 'var(--s8)',
-      display: 'flex', flexDirection: 'column', gap: 'var(--s5)', height: '100%', overflowY: 'auto'
+      display: 'flex', flexDirection: 'column', gap: 'var(--s5)', height: '100%'
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s3)' }}>

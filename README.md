@@ -6,6 +6,26 @@ PCFixAI is a desktop application that diagnoses and fixes common Windows issues 
 
 ---
 
+## Latest Update — v1.1.0 (June 2026)
+
+### New Features
+
+- **Winget App Updater** — Automatically checks for outdated packages via winget, installs winget if missing, updates individual or all apps silently
+- **SFC/DISM Manager** — Visual interface for System File Checker and DISM restore health scans with real-time progress, result display, and restart notifications
+- **Network Speed Test** — Built-in download/upload/ping speed test using PowerShell (no browser required), with speed ratings (Excellent/Good/Fair/Slow)
+- **Driver Backup & Restore** — Export all third-party drivers via DISM, restore from backup via pnputil; browse installed drivers grouped by category
+
+### Improvements
+
+- **Premium UI** — Animated message bubbles, spring-physics accordion, gradient health header, card hover effects, sidebar glow indicators, staggered entrance animations
+- **Functional Settings** — Theme dropdown, notifications toggle, log retention, reset all settings
+- **History Logging** — All actions (chat quick actions, dashboard buttons, toolkit operations, scan results) now appear in History
+- **Real System Specs** — "Show my system specs" returns live WMI data (CPU, RAM, GPU, Disk, Motherboard, OS)
+- **Dashboard Quick Actions** — Temp File Cleanup, DNS Flush, Browser Cache Sweep buttons now execute real commands with status feedback
+- **Enhanced Scan** — Rust backend now checks disk space, CPU usage, memory usage, and startup program count
+
+---
+
 ## Features
 
 - **One-Click System Scan** — Disk health, network connectivity, restore point creation
@@ -16,9 +36,14 @@ PCFixAI is a desktop application that diagnoses and fixes common Windows issues 
 - **Restore Points** — Every scan creates a Windows System Restore point; all changes are reversible
 - **Job History** — Full audit trail of every action with exit codes and status
 - **Privilege Detection** — Automatically detects admin elevation and warns when deep fixes are restricted
-- **Toolkit** — 8 categories of system tools: Performance, Hardware, Cleanup, Troubleshooting, Advanced, Drivers, External Tools, and System Managers (Startup, Processes, Services, Installed Apps)
+- **Toolkit** — 12 system tools across 12 tabs:
+  - Performance, Hardware, Cleanup, Troubleshooting, Advanced, Drivers, External Tools
+  - Startup Programs, Running Processes, System Services, Installed Apps
+  - **App Updates (Winget)**, **SFC/DISM**, **Speed Test**, **Driver Backup**
 - **Fully Offline** — No internet connection required, no data leaves your machine
+
 ![alt text](image.png)
+
 ---
 
 ## Screenshots
@@ -97,7 +122,7 @@ npm run tauri:build
    - `Boost my PC` — Clean caches, activate High Performance power plan
    - `Clean up disk space` — Remove temp files and browser caches
    - `Show my system specs` — Display OS, CPU, RAM, architecture info
-4. **Toolkit** — Browse 30+ system tools across 8 categories; interactive managers for startup programs, running processes, services, and installed apps
+4. **Toolkit** — Browse 30+ system tools across 8 categories; interactive managers for startup programs, running processes, services, installed apps, winget updates, SFC/DISM, speed test, and driver backup
 5. **History** — View all past jobs with stats (total ops, success rate, timestamps)
 6. **Settings** — Adjust preferences (persisted across restarts)
 
@@ -129,7 +154,8 @@ Rust backend:
   1. Creates Windows System Restore point
   2. Checks disk health (Get-PhysicalDisk)
   3. Checks network health (Test-NetConnection 8.8.8.8:53)
-  4. Returns findings to frontend
+  4. Checks disk space, CPU usage, memory usage, startup programs
+  5. Returns findings to frontend
         │
         ▼
 Agent loop auto-fixes each finding:
@@ -150,6 +176,14 @@ Results streamed to UI via events (scan-status, log-line, job-update, agent-step
 PCFixAI/
 ├── src-tauri/          # Rust backend (commands, scan, agent loop)
 ├── src/                # React frontend (components, store, hooks)
+│   ├── components/
+│   │   ├── chat/       # ChatInterface with animated messages
+│   │   ├── dashboard/  # Dashboard, Settings, History, Findings
+│   │   ├── toolkit/    # 12 tool categories + 8 interactive managers
+│   │   └── shared/     # Sidebar, TitleBar
+│   ├── hooks/          # useLocalAI, useTauriEvents
+│   ├── store/          # Zustand state management
+│   └── styles/         # globals.css design tokens
 ├── ARCHITECTURE.md     # Full system design document
 ├── package.json        # Node dependencies
 └── vite.config.ts      # Vite build config

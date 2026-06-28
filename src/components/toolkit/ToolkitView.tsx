@@ -12,6 +12,10 @@ import { StartupManager } from './StartupManager'
 import { ProcessManager } from './ProcessManager'
 import { ServiceManager } from './ServiceManager'
 import { UninstallManager } from './UninstallManager'
+import { WingetManager } from './WingetManager'
+import { SfcManager } from './SfcManager'
+import { SpeedTest } from './SpeedTest'
+import { DriverBackup } from './DriverBackup'
 
 interface ToolkitAction {
   id: string
@@ -396,6 +400,10 @@ export function ToolkitView() {
     { id: 'processes', label: 'Running Processes', icon: Activity, color: '#ff5252', component: ProcessManager },
     { id: 'services', label: 'System Services', icon: Settings, color: '#e040fb', component: ServiceManager },
     { id: 'uninstall', label: 'Installed Apps', icon: Trash2, color: '#ff8a80', component: UninstallManager },
+    { id: 'winget', label: 'App Updates', icon: RefreshCw, color: '#00e5ff', component: WingetManager },
+    { id: 'sfc', label: 'SFC / DISM', icon: Shield, color: '#00e676', component: SfcManager },
+    { id: 'speedtest', label: 'Speed Test', icon: Wifi, color: '#ffab40', component: SpeedTest },
+    { id: 'drivers', label: 'Driver Backup', icon: HardDrive, color: '#e040fb', component: DriverBackup },
   ]
 
   async function runAction(action: ToolkitAction) {
@@ -449,7 +457,7 @@ export function ToolkitView() {
 
   return (
     <div style={{
-      height: '100%', overflowY: 'auto',
+      height: '100%',
       padding: 'var(--s5) var(--s8)',
       display: 'flex', flexDirection: 'column', gap: 'var(--s4)',
     }}>
@@ -464,10 +472,11 @@ export function ToolkitView() {
       >
         <div style={{
           width: 40, height: 40, borderRadius: 10,
-          background: 'var(--accent)', display: 'flex',
-          alignItems: 'center', justifyContent: 'center',
+          background: 'linear-gradient(135deg, #00d4ff, #0099cc)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 2px 12px rgba(0,212,255,0.3)',
         }}>
-          <Wrench size={22} color="var(--bg-void)" />
+          <Wrench size={22} color="white" />
         </div>
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>PC Maintenance Toolkit</h2>
@@ -486,12 +495,14 @@ export function ToolkitView() {
           style={{
             background: 'var(--bg-surface)',
             border: '1px solid var(--border-dim)',
-            borderRadius: 'var(--r3)',
+            borderRadius: 'var(--r4)',
             overflow: 'hidden',
+            boxShadow: 'var(--shadow-sm)',
+            transition: 'box-shadow var(--transition-fast)',
           }}
         >
           <motion.button
-            whileHover={{ backgroundColor: 'rgba(255,255,255,0.02)' }}
+            whileHover={{ backgroundColor: 'rgba(255,255,255,0.04)' }}
             whileTap={{ scale: 0.995 }}
             onClick={() => setExpandedCategory(expandedCategory === cat.id ? null : cat.id)}
             style={{
@@ -499,6 +510,7 @@ export function ToolkitView() {
               gap: 'var(--s3)', padding: 'var(--s4) var(--s5)',
               background: 'transparent', border: 'none',
               cursor: 'pointer', textAlign: 'left',
+              transition: 'background var(--transition-fast)',
             }}
           >
             <motion.div
@@ -536,7 +548,7 @@ export function ToolkitView() {
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30, opacity: { duration: 0.2 } }}
                 style={{ overflow: 'hidden' }}
               >
                 <div style={{
@@ -564,7 +576,7 @@ export function ToolkitView() {
                                 borderRadius: 'var(--r2)',
                                 color: isActive ? tab.color : 'var(--text-secondary)',
                                 fontSize: 12, fontWeight: isActive ? 600 : 400,
-                                cursor: 'pointer', transition: 'all 0.2s',
+                                cursor: 'pointer', transition: 'all var(--transition-fast)',
                               }}
                             >
                               <TabIcon size={14} />
@@ -608,14 +620,15 @@ export function ToolkitView() {
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ duration: 0.2, delay: actionIndex * 0.03 }}
-                          whileHover={{ backgroundColor: 'rgba(255,255,255,0.02)', borderColor: action.color + '55' }}
+                          whileHover={{ borderColor: action.color + '55' }}
                           style={{
                             display: 'flex', alignItems: 'center', gap: 'var(--s3)',
                             padding: '10px 14px',
                             border: `1px solid ${result?.status === 'error' ? 'var(--danger)' : result?.status === 'success' ? 'var(--success)' : 'var(--border-dim)'}`,
+                            borderLeft: `3px solid ${result?.status === 'success' ? 'var(--success)' : result?.status === 'error' ? 'var(--danger)' : action.color + '44'}`,
                             borderRadius: 'var(--r2)',
                             background: isRunning ? `${action.color}08` : 'transparent',
-                            transition: 'border-color 0.3s, background 0.3s',
+                            transition: 'all var(--transition-fast)',
                             cursor: 'default',
                           }}
                         >
@@ -699,7 +712,7 @@ export function ToolkitView() {
                           </div>
 
                           <motion.button
-                            whileHover={{ scale: 1.05, backgroundColor: `${action.color}22` }}
+                            whileHover={{ scale: 1.05, boxShadow: `0 0 12px ${action.color}30` }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => runAction(action)}
                             disabled={isRunning}
@@ -713,6 +726,7 @@ export function ToolkitView() {
                               cursor: isRunning ? 'default' : 'pointer',
                               opacity: isRunning ? 0.7 : 1,
                               flexShrink: 0,
+                              transition: 'all var(--transition-fast)',
                             }}
                           >
                             {isRunning ? 'Running...' : 'Run'}

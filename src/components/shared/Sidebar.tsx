@@ -15,12 +15,13 @@ export function Sidebar() {
   return (
     <div style={{
       width: 260,
-      background: 'var(--bg-surface)',
+      background: 'linear-gradient(180deg, var(--bg-surface) 0%, rgba(10,16,24,1) 100%)',
       borderRight: '1px solid var(--border-dim)',
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
-      padding: 'var(--s6) var(--s4)'
+      padding: 'var(--s6) var(--s4)',
+      position: 'relative',
     }}>
       {/* Brand Header */}
       <div style={{
@@ -31,12 +32,13 @@ export function Sidebar() {
         paddingLeft: 'var(--s2)'
       }}>
         <div style={{
-          width: 32, height: 32,
-          borderRadius: 8,
-          background: 'var(--accent)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center'
+          width: 36, height: 36,
+          borderRadius: 10,
+          background: 'linear-gradient(135deg, #00d4ff, #0099cc)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 2px 12px rgba(0,212,255,0.3), inset 0 1px 0 rgba(255,255,255,0.15)',
         }}>
-          <BrainCircuit size={20} color="var(--bg-void)" />
+          <BrainCircuit size={20} color="white" />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.03em' }}>PCFixAI</span>
@@ -45,7 +47,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s2)', flex: 1 }}>
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s1)', flex: 1 }}>
         {navItems.map(item => {
           const active = mode === item.id
           const Icon = item.icon
@@ -56,18 +58,46 @@ export function Sidebar() {
               style={{
                 display: 'flex', alignItems: 'center', gap: 'var(--s3)',
                 width: '100%',
-                padding: 'var(--s3) var(--s4)',
+                padding: '10px var(--s4)',
+                paddingLeft: active ? 'calc(var(--s4) - 3px)' : 'var(--s4)',
                 background: active ? 'var(--accent-dim)' : 'transparent',
-                border: active ? '1px solid var(--border-hot)' : '1px solid transparent',
+                border: 'none',
                 borderRadius: 'var(--r2)',
                 color: active ? 'var(--accent)' : 'var(--text-secondary)',
                 fontSize: 14,
                 fontWeight: active ? 600 : 500,
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                textAlign: 'left'
+                transition: 'all var(--transition-fast)',
+                textAlign: 'left',
+                position: 'relative',
+              }}
+              onMouseEnter={(e) => {
+                if (!active) {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                  e.currentTarget.style.color = 'var(--text-primary)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!active) {
+                  e.currentTarget.style.background = 'transparent'
+                  e.currentTarget.style.color = 'var(--text-secondary)'
+                }
               }}
             >
+              {/* Active indicator bar */}
+              {active && (
+                <div style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: 3,
+                  height: 20,
+                  borderRadius: '0 3px 3px 0',
+                  background: 'var(--accent)',
+                  boxShadow: '0 0 8px var(--accent-glow)',
+                }} />
+              )}
               <Icon size={18} strokeWidth={active ? 2.5 : 2} />
               {item.label}
             </button>
@@ -77,15 +107,25 @@ export function Sidebar() {
 
       {/* Footer Area */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s4)', marginTop: 'auto' }}>
-        <button style={{
+        <button
+          onClick={() => window.open('https://github.com/JamesMangao/PCFixAI/issues', '_blank')}
+          style={{
           display: 'flex', alignItems: 'center', gap: 'var(--s2)',
           background: 'transparent', border: 'none',
           color: 'var(--text-muted)', fontSize: 12,
           cursor: 'pointer', paddingLeft: 'var(--s2)',
-          transition: 'color 0.2s'
+          transition: 'color var(--transition-fast)',
+          borderRadius: 'var(--r1)',
+          padding: '4px var(--s2)',
         }}
-        onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
-        onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = 'var(--text-secondary)'
+          e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = 'var(--text-muted)'
+          e.currentTarget.style.background = 'transparent'
+        }}
         >
           <MessageCircleQuestion size={14} />
           Give Feedback
@@ -96,7 +136,12 @@ export function Sidebar() {
           paddingLeft: 'var(--s2)', fontSize: 10, color: 'var(--text-muted)',
           fontFamily: 'var(--font-mono)'
         }}>
-          <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success)', boxShadow: '0 0 8px var(--success)' }} />
+          <div style={{
+            width: 6, height: 6, borderRadius: '50%',
+            background: 'var(--success)',
+            boxShadow: '0 0 8px var(--success)',
+            animation: 'glow-pulse 3s ease-in-out infinite',
+          }} />
           AI Active v1.7.5
         </div>
       </div>
