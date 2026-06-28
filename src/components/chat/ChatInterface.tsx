@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useLocalAI } from '../../hooks/useLocalAI'
 
 export function ChatInterface() {
-  const { chatMessages, appendChatMessage, clearChat } = useStore()
+  const { chatMessages, appendChatMessage, clearChat, ollamaStatus } = useStore()
   const { sendMessage, isGenerating } = useLocalAI()
   const [input, setInput] = useState('')
   const [inputFocused, setInputFocused] = useState(false)
@@ -58,8 +58,18 @@ export function ChatInterface() {
             <Bot size={24} color="white" />
           </div>
           <div>
-            <h2 style={{ fontSize: 20, margin: 0, fontWeight: 600 }}>PCFixAI <span style={{ fontSize: 12, color: 'var(--success)', fontWeight: 500 }}>• Online</span></h2>
-            <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Offline PC Repair</span>
+            <h2 style={{ fontSize: 20, margin: 0, fontWeight: 600 }}>PCFixAI <span style={{
+              fontSize: 12,
+              color: ollamaStatus === 'ready' ? 'var(--success)' : 'var(--text-muted)',
+              fontWeight: 500
+            }}>
+              {ollamaStatus === 'ready' ? '• AI Connected' :
+               ollamaStatus === 'checking' ? '• Checking...' :
+               '• Rule-based'}
+            </span></h2>
+            <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+              {ollamaStatus === 'ready' ? 'AI-powered via Ollama' : 'Offline PC Repair'}
+            </span>
           </div>
         </div>
         {chatMessages.length > 1 && (

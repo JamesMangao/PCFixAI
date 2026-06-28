@@ -4,14 +4,14 @@
 //  scan orchestration, rollback checkpoints, and AI agent loop.
 // ============================================================
 
+use chrono::Utc;
+use serde::{Deserialize, Serialize};
 use std::process::Stdio;
 use std::sync::Arc;
+use tauri::{AppHandle, Emitter, State};
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
 use tokio::sync::Mutex;
-use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Emitter, State};
-use chrono::Utc;
 use uuid::Uuid;
 
 // ─────────────────────────────────────────────────────────────
@@ -105,9 +105,11 @@ pub enum Severity {
 
 #[cfg(target_os = "windows")]
 mod privilege {
-    use windows::Win32::Security::{GetTokenInformation, TokenElevation, TOKEN_ELEVATION, TOKEN_QUERY};
-    use windows::Win32::System::Threading::{GetCurrentProcess, OpenProcessToken};
     use windows::Win32::Foundation::{CloseHandle, HANDLE};
+    use windows::Win32::Security::{
+        GetTokenInformation, TokenElevation, TOKEN_ELEVATION, TOKEN_QUERY,
+    };
+    use windows::Win32::System::Threading::{GetCurrentProcess, OpenProcessToken};
 
     pub fn is_elevated() -> bool {
         unsafe {
@@ -150,9 +152,7 @@ async fn run_command_streaming(
     args: &[&str],
 ) -> anyhow::Result<(i32, Vec<String>)> {
     let mut cmd = Command::new(program);
-    cmd.args(args)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
+    cmd.args(args).stdout(Stdio::piped()).stderr(Stdio::piped());
 
     #[cfg(target_os = "windows")]
     {
@@ -217,7 +217,7 @@ async fn create_restore_point(app: &AppHandle, label: &str) -> bool {
             r#"Checkpoint-Computer -Description "{label}" -RestorePointType "MODIFY_SETTINGS""#
         );
         let id = Uuid::new_v4().to_string();
-        
+
         // Wrap in a 15-second timeout since Checkpoint-Computer can sometimes hang for several minutes
         match tokio::time::timeout(
             std::time::Duration::from_secs(15),
@@ -226,8 +226,10 @@ async fn create_restore_point(app: &AppHandle, label: &str) -> bool {
                 &id,
                 "powershell",
                 &["-NonInteractive", "-NoProfile", "-Command", &script],
-            )
-        ).await {
+            ),
+        )
+        .await
+        {
             Ok(Ok((0, _))) => return true,
             _ => {}
         }
@@ -324,7 +326,8 @@ async fn check_network_health(app: &AppHandle) -> Vec<Finding> {
                 severity: Severity::High,
                 category: "Network".into(),
                 title: "External DNS connectivity failure".into(),
-                description: "Cannot reach 8.8.8.8:53. DNS flush and adapter reset recommended.".into(),
+                description: "Cannot reach 8.8.8.8:53. DNS flush and adapter reset recommended."
+                    .into(),
                 fix_available: true,
                 auto_fixable: true,
             });
@@ -419,7 +422,8 @@ async fn check_high_cpu(app: &AppHandle) -> Vec<Finding> {
                         severity: Severity::Medium,
                         category: "Performance".into(),
                         title: format!("Elevated CPU usage — {:.0}%", cpu_pct),
-                        description: "CPU usage is above normal. Monitor for sustained high usage.".into(),
+                        description: "CPU usage is above normal. Monitor for sustained high usage."
+                            .into(),
                         fix_available: false,
                         auto_fixable: false,
                     });
@@ -466,7 +470,8 @@ async fn check_high_memory(app: &AppHandle) -> Vec<Finding> {
                         severity: Severity::Medium,
                         category: "Performance".into(),
                         title: format!("Elevated memory usage — {:.0}% RAM used", ram_pct),
-                        description: "Memory usage is above normal. Monitor for memory leaks.".into(),
+                        description: "Memory usage is above normal. Monitor for memory leaks."
+                            .into(),
                         fix_available: false,
                         auto_fixable: false,
                     });
@@ -489,10 +494,13 @@ async fn check_startup_programs(app: &AppHandle) -> Vec<Finding> {
             &id,
             "powershell",
             &[
-                "-NonInteractive", "-NoProfile", "-Command",
+                "-NonInteractive",
+                "-NoProfile",
+                "-Command",
                 "(Get-CimInstance Win32_StartupCommand -ErrorAction SilentlyContinue).Count",
             ],
-        ).await;
+        )
+        .await;
 
         if let Ok((0, lines)) = result {
             let output = lines.join("").trim().to_string();
@@ -572,7 +580,11 @@ async fn run_agent_loop(app: AppHandle, state: Arc<AppState>, findings: Vec<Find
             timestamp: Utc::now().to_rfc3339(),
             category: finding.category.clone(),
             action: finding.title.clone(),
-            status: if success { JobStatus::Success } else { JobStatus::Failed },
+            status: if success {
+                JobStatus::Success
+            } else {
+                JobStatus::Failed
+            },
             output: vec![],
             exit_code: Some(if success { 0 } else { 1 }),
         };
@@ -599,9 +611,9 @@ async fn fix_network(app: &AppHandle, _finding: &Finding) -> bool {
     let id = Uuid::new_v4().to_string();
 
     #[cfg(target_os = "windows")]
-    let (code, _) = run_command_streaming(
-        app, &id, "ipconfig", &["/flushdns"],
-    ).await.unwrap_or((-1, vec![]));
+    let (code, _) = run_command_streaming(app, &id, "ipconfig", &["/flushdns"])
+        .await
+        .unwrap_or((-1, vec![]));
 
     #[cfg(not(target_os = "windows"))]
     let code = 0i32;
@@ -618,7 +630,9 @@ async fn fix_performance(app: &AppHandle, _finding: &Finding) -> bool {
             &id,
             "powershell",
             &[
-                "-NonInteractive", "-NoProfile", "-Command",
+                "-NonInteractive",
+                "-NoProfile",
+                "-Command",
                 "Clear-RecycleBin -Force -ErrorAction SilentlyContinue; \
                  Remove-Item -Path $env:TEMP\\* -Recurse -Force -ErrorAction SilentlyContinue",
             ],
@@ -645,14 +659,10 @@ async fn fix_os(app: &AppHandle, _finding: &Finding) -> bool {
         .unwrap_or((-1, vec![]));
 
         if dism_code != 0 || dism_out.iter().any(|l| l.contains("corruption")) {
-            let (sfc_code, _) = run_command_streaming(
-                app,
-                &Uuid::new_v4().to_string(),
-                "sfc",
-                &["/scannow"],
-            )
-            .await
-            .unwrap_or((-1, vec![]));
+            let (sfc_code, _) =
+                run_command_streaming(app, &Uuid::new_v4().to_string(), "sfc", &["/scannow"])
+                    .await
+                    .unwrap_or((-1, vec![]));
             return sfc_code == 0;
         }
         return dism_code == 0;
@@ -701,7 +711,8 @@ async fn run_escalation(app: &AppHandle, finding: &Finding) {
                 &Uuid::new_v4().to_string(),
                 "netsh",
                 &["int", "ip", "reset"],
-            ).await;
+            )
+            .await;
         }
         "OS" => {
             let _ = run_command_streaming(
@@ -709,7 +720,8 @@ async fn run_escalation(app: &AppHandle, finding: &Finding) {
                 &id,
                 "dism",
                 &["/Online", "/Cleanup-Image", "/StartComponentCleanup"],
-            ).await;
+            )
+            .await;
         }
         _ => {}
     }
@@ -817,11 +829,7 @@ async fn scan_system(
 }
 
 #[tauri::command]
-async fn execute_fix(
-    app: AppHandle,
-    category: String,
-    action: String,
-) -> Result<bool, String> {
+async fn execute_fix(app: AppHandle, category: String, action: String) -> Result<bool, String> {
     let dummy = Finding {
         id: Uuid::new_v4().to_string(),
         severity: Severity::Medium,
@@ -899,10 +907,10 @@ Write-Output "NET:$netPct"
 Write-Output "TOTAL_RAM:$totalRam"
 Write-Output "USED_RAM:$usedRam"
         "#;
-        let (_, lines) = run_command_streaming(
-            &app, &id, "powershell",
-            &["-NoProfile", "-Command", script],
-        ).await.map_err(|e| e.to_string())?;
+        let (_, lines) =
+            run_command_streaming(&app, &id, "powershell", &["-NoProfile", "-Command", script])
+                .await
+                .map_err(|e| e.to_string())?;
 
         let output = lines.join("\n");
         let mut cpu = 0f64;
@@ -913,12 +921,19 @@ Write-Output "USED_RAM:$usedRam"
         let mut used_ram = 0f64;
 
         for line in output.lines() {
-            if let Some(v) = line.strip_prefix("CPU:") { cpu = v.trim().parse().unwrap_or(0.0); }
-            else if let Some(v) = line.strip_prefix("RAM:") { ram = v.trim().parse().unwrap_or(0.0); }
-            else if let Some(v) = line.strip_prefix("DISK:") { disk = v.trim().parse().unwrap_or(0.0); }
-            else if let Some(v) = line.strip_prefix("NET:") { net = v.trim().parse().unwrap_or(0.0); }
-            else if let Some(v) = line.strip_prefix("TOTAL_RAM:") { total_ram = v.trim().parse().unwrap_or(0.0); }
-            else if let Some(v) = line.strip_prefix("USED_RAM:") { used_ram = v.trim().parse().unwrap_or(0.0); }
+            if let Some(v) = line.strip_prefix("CPU:") {
+                cpu = v.trim().parse().unwrap_or(0.0);
+            } else if let Some(v) = line.strip_prefix("RAM:") {
+                ram = v.trim().parse().unwrap_or(0.0);
+            } else if let Some(v) = line.strip_prefix("DISK:") {
+                disk = v.trim().parse().unwrap_or(0.0);
+            } else if let Some(v) = line.strip_prefix("NET:") {
+                net = v.trim().parse().unwrap_or(0.0);
+            } else if let Some(v) = line.strip_prefix("TOTAL_RAM:") {
+                total_ram = v.trim().parse().unwrap_or(0.0);
+            } else if let Some(v) = line.strip_prefix("USED_RAM:") {
+                used_ram = v.trim().parse().unwrap_or(0.0);
+            }
         }
 
         return Ok(serde_json::json!({
@@ -932,7 +947,9 @@ Write-Output "USED_RAM:$usedRam"
     }
 
     #[cfg(not(target_os = "windows"))]
-    Ok(serde_json::json!({ "cpu": 0, "ram": 0, "disk": 0, "network": 0, "totalRam": 0, "usedRam": 0 }))
+    Ok(
+        serde_json::json!({ "cpu": 0, "ram": 0, "disk": 0, "network": 0, "totalRam": 0, "usedRam": 0 }),
+    )
 }
 
 #[tauri::command]
@@ -971,10 +988,10 @@ Get-CimInstance Win32_StartupCommand -ErrorAction SilentlyContinue | ForEach-Obj
 }
 $items | ConvertTo-Json -Depth 3
     "#;
-    let (_, lines) = run_command_streaming(
-        &app, &id, "powershell",
-        &["-NoProfile", "-Command", script],
-    ).await.map_err(|e| e.to_string())?;
+    let (_, lines) =
+        run_command_streaming(&app, &id, "powershell", &["-NoProfile", "-Command", script])
+            .await
+            .map_err(|e| e.to_string())?;
     Ok(lines.join("\n"))
 }
 
@@ -992,21 +1009,28 @@ Get-Process | Where-Object {$_.Id -ne 0} | Select-Object `
 Sort-Object 'Mem(MB)' -Descending |
 ConvertTo-Json -Depth 2
     "#;
-    let (_, lines) = run_command_streaming(
-        &app, &id, "powershell",
-        &["-NoProfile", "-Command", script],
-    ).await.map_err(|e| e.to_string())?;
+    let (_, lines) =
+        run_command_streaming(&app, &id, "powershell", &["-NoProfile", "-Command", script])
+            .await
+            .map_err(|e| e.to_string())?;
     Ok(lines.join("\n"))
 }
 
 #[tauri::command]
 async fn kill_process(app: AppHandle, pid: i32) -> Result<bool, String> {
     let id = Uuid::new_v4().to_string();
-    let script = format!("Stop-Process -Id {} -Force -ErrorAction Stop; Write-Output 'OK'", pid);
+    let script = format!(
+        "Stop-Process -Id {} -Force -ErrorAction Stop; Write-Output 'OK'",
+        pid
+    );
     let (code, _) = run_command_streaming(
-        &app, &id, "powershell",
+        &app,
+        &id,
+        "powershell",
         &["-NoProfile", "-Command", &script],
-    ).await.map_err(|e| e.to_string())?;
+    )
+    .await
+    .map_err(|e| e.to_string())?;
     Ok(code == 0)
 }
 
@@ -1022,10 +1046,10 @@ Get-Service | Select-Object `
 Sort-Object Status, Name |
 ConvertTo-Json -Depth 2
     "#;
-    let (_, lines) = run_command_streaming(
-        &app, &id, "powershell",
-        &["-NoProfile", "-Command", script],
-    ).await.map_err(|e| e.to_string())?;
+    let (_, lines) =
+        run_command_streaming(&app, &id, "powershell", &["-NoProfile", "-Command", script])
+            .await
+            .map_err(|e| e.to_string())?;
     Ok(lines.join("\n"))
 }
 
@@ -1033,17 +1057,36 @@ ConvertTo-Json -Depth 2
 async fn manage_service(app: AppHandle, name: String, action: String) -> Result<bool, String> {
     let id = Uuid::new_v4().to_string();
     let script = match action.as_str() {
-        "start" => format!("Start-Service -Name '{}' -ErrorAction Stop; Write-Output 'OK'", name),
-        "stop" => format!("Stop-Service -Name '{}' -Force -ErrorAction Stop; Write-Output 'OK'", name),
-        "restart" => format!("Restart-Service -Name '{}' -Force -ErrorAction Stop; Write-Output 'OK'", name),
-        "disable" => format!("Set-Service -Name '{}' -StartupType Disabled -ErrorAction Stop; Write-Output 'OK'", name),
-        "enable" => format!("Set-Service -Name '{}' -StartupType Automatic -ErrorAction Stop; Write-Output 'OK'", name),
+        "start" => format!(
+            "Start-Service -Name '{}' -ErrorAction Stop; Write-Output 'OK'",
+            name
+        ),
+        "stop" => format!(
+            "Stop-Service -Name '{}' -Force -ErrorAction Stop; Write-Output 'OK'",
+            name
+        ),
+        "restart" => format!(
+            "Restart-Service -Name '{}' -Force -ErrorAction Stop; Write-Output 'OK'",
+            name
+        ),
+        "disable" => format!(
+            "Set-Service -Name '{}' -StartupType Disabled -ErrorAction Stop; Write-Output 'OK'",
+            name
+        ),
+        "enable" => format!(
+            "Set-Service -Name '{}' -StartupType Automatic -ErrorAction Stop; Write-Output 'OK'",
+            name
+        ),
         _ => return Ok(false),
     };
     let (code, _) = run_command_streaming(
-        &app, &id, "powershell",
+        &app,
+        &id,
+        "powershell",
         &["-NoProfile", "-Command", &script],
-    ).await.map_err(|e| e.to_string())?;
+    )
+    .await
+    .map_err(|e| e.to_string())?;
     Ok(code == 0)
 }
 
@@ -1071,10 +1114,10 @@ foreach ($path in $regPaths) {
 }
 $apps | Sort-Object Name -Unique | ConvertTo-Json -Depth 2
     "#;
-    let (_, lines) = run_command_streaming(
-        &app, &id, "powershell",
-        &["-NoProfile", "-Command", script],
-    ).await.map_err(|e| e.to_string())?;
+    let (_, lines) =
+        run_command_streaming(&app, &id, "powershell", &["-NoProfile", "-Command", script])
+            .await
+            .map_err(|e| e.to_string())?;
     Ok(lines.join("\n"))
 }
 
@@ -1091,6 +1134,7 @@ pub fn run() {
     let state = Arc::new(AppState::default());
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_http::init())
         .manage(state)
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_process::init())

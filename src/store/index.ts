@@ -56,6 +56,8 @@ export interface AgentStep {
   timestamp: string
 }
 
+export type OllamaStatus = 'checking' | 'not_installed' | 'installing' | 'installed_not_running' | 'starting' | 'pulling_model' | 'ready'
+
 export interface AppSettings {
   compactMode: boolean
   localModelExecution: boolean
@@ -65,6 +67,7 @@ export interface AppSettings {
   theme: string
   notifications: boolean
   logRetention: number
+  ollamaModel: string
 }
 
 interface PCFixAIStore {
@@ -103,13 +106,16 @@ interface PCFixAIStore {
   settings: AppSettings
   updateSettings: (s: Partial<AppSettings>) => void
 
+  ollamaStatus: OllamaStatus
+  setOllamaStatus: (s: OllamaStatus) => void
+
   _hydrated: boolean
 }
 
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
   role: 'assistant',
-  content: "Hey! Tell me what's going on with your PC.\n\nWhat I do well: • Diagnose with real system data (Event Log, services, drivers, BSOD history) • Show you the plan before any change • Snapshot before every fix, with one-click undo always available • Run entirely offline with local AI\n\nTry: 'blue screen yesterday', 'boot loop after April update', 'Clean my temp files', or just click a quick action below."
+  content: "Hey! Tell me what's going on with your PC.\n\nWhat I do well: • Diagnose with real system data (Event Log, services, drivers, BSOD history) • Show you the plan before any change • Snapshot before every fix, with one-click undo always available • Optional: AI-powered chat with Ollama\n\nTry: 'blue screen yesterday', 'boot loop after April update', 'Clean my temp files', or just click a quick action below."
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -121,6 +127,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'dark',
   notifications: true,
   logRetention: 30,
+  ollamaModel: 'llama3.2:3b',
 }
 
 export const useStore = create<PCFixAIStore>()(
@@ -181,6 +188,9 @@ export const useStore = create<PCFixAIStore>()(
       settings: { ...DEFAULT_SETTINGS },
       updateSettings: (patch) =>
         set((s) => ({ settings: { ...s.settings, ...patch } })),
+
+      ollamaStatus: 'checking',
+      setOllamaStatus: (ollamaStatus) => set({ ollamaStatus }),
 
       _hydrated: false,
     }),

@@ -1,8 +1,8 @@
-import { Settings, Shield, Cpu, Paintbrush, Bell } from 'lucide-react'
+import { Settings, Shield, Cpu, Paintbrush, Bell, Bot } from 'lucide-react'
 import { useStore } from '../../store'
 
 export function SettingsView() {
-  const { settings, updateSettings } = useStore()
+  const { settings, updateSettings, ollamaStatus } = useStore()
 
   function toggle(key: 'compactMode' | 'localModelExecution' | 'autoRestorePoints' | 'backgroundScans' | 'notifications') {
     updateSettings({ [key]: !settings[key] })
@@ -35,6 +35,17 @@ export function SettingsView() {
             { value: 'All Issues', label: 'All Issues' },
           ]
         },
+      ]
+    },
+    {
+      title: 'Ollama AI',
+      icon: Bot,
+      items: [
+        { name: 'Status', type: 'info', value: ollamaStatus === 'ready' ? 'Connected' : ollamaStatus === 'checking' ? 'Checking...' : 'Not connected',
+          desc: ollamaStatus === 'ready' ? `Using ${settings.ollamaModel} for AI responses` : 'Install Ollama for AI-powered chat responses' },
+        { name: 'Model Name', type: 'input', value: settings.ollamaModel,
+          desc: 'Ollama model to use (e.g., llama3.2:3b, phi3:mini)',
+          onChange: (v: string) => updateSettings({ ollamaModel: v }) },
       ]
     },
     {
@@ -113,6 +124,23 @@ export function SettingsView() {
                           boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                         }} />
                       </div>
+                    ) : item.type === 'input' ? (
+                      <input
+                        type="text"
+                        value={item.value}
+                        onChange={(e) => item.onChange?.(e.target.value)}
+                        style={{
+                          background: 'var(--bg-surface)', border: '1px solid var(--border-mid)', color: 'var(--text-primary)',
+                          padding: '4px 8px', borderRadius: 6, fontSize: 13, outline: 'none', width: 180,
+                        }}
+                      />
+                    ) : item.type === 'info' ? (
+                      <span style={{
+                        fontSize: 12, fontWeight: 500,
+                        color: item.value === 'Connected' ? 'var(--success)' : 'var(--text-muted)',
+                      }}>
+                        {item.value}
+                      </span>
                     ) : (
                       <select
                         value={item.value}
@@ -143,7 +171,7 @@ export function SettingsView() {
           <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 'var(--s1)' }}>Restore all settings to their default values</div>
         </div>
         <button
-          onClick={() => { if (window.confirm('Reset all settings to defaults?')) updateSettings({ compactMode: false, localModelExecution: true, autoFixThreshold: 'high', autoRestorePoints: true, backgroundScans: false, theme: 'dark', notifications: true, logRetention: 30 }) }}
+          onClick={() => { if (window.confirm('Reset all settings to defaults?')) updateSettings({ compactMode: false, localModelExecution: true, autoFixThreshold: 'high', autoRestorePoints: true, backgroundScans: false, theme: 'dark', notifications: true, logRetention: 30, ollamaModel: 'llama3.2:3b' }) }}
           style={{
             padding: '6px 14px', background: 'transparent',
             border: '1px solid var(--danger)', borderRadius: 'var(--r2)',

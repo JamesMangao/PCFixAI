@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useStore, Finding, JobEntry } from '../store'
 import { startScan, runRawCommand, runRawCommandOutput } from './useTauriEvents'
+import { fetch as tauriFetch } from '@tauri-apps/plugin-http'
 
 const SEVERITY_EMOJI: Record<string, string> = {
   critical: '🚨',
@@ -403,7 +404,7 @@ async function handleCleanDisk(): Promise<string> {
 
 const FALLBACK_RESPONSES: Record<string, string> = {
   'hello': "Hey there! 👋 I'm your PC repair assistant. Here's what I can do:\n\n🔍 **Diagnose** — Full system scan with auto-fix\n⚡ **Speed up** — Optimize startup and performance\n🌐 **Fix internet** — Network stack reset and DNS flush\n💾 **Clean disk** — Remove temp files and browser caches\n📊 **System specs** — Show your hardware details\n🛠️ **Toolkit** — 30+ advanced maintenance tools\n\nWhat would you like to do?",
-  'what can you do': "I'm a fully offline PC repair assistant. Here's everything I can help with:\n\n**Quick Actions:**\n• 🔍 System Scan — Detect and fix issues automatically\n• ⚡ Speed Up Startup — Clean temp files, optimize boot\n• 🌐 Fix Internet — DNS flush, Winsock reset, IP renewal\n• 🚀 Boost PC — Performance tweaks and cache cleanup\n• 🧹 Clean Disk — Free up space by removing junk files\n• 📊 System Specs — Show detailed hardware info\n\n**Advanced:**\n• 🛠️ Toolkit — 30+ maintenance tools organized by category\n• 💬 Ask me anything about PC issues — I'll give you step-by-step advice\n\nTry clicking a quick action button below!",
+  'what can you do': "I'm a PC repair assistant that works offline-first. Here's everything I can help with:\n\n**Quick Actions:**\n• 🔍 System Scan — Detect and fix issues automatically\n• ⚡ Speed Up Startup — Clean temp files, optimize boot\n• 🌐 Fix Internet — DNS flush, Winsock reset, IP renewal\n• 🚀 Boost PC — Performance tweaks and cache cleanup\n• 🧹 Clean Disk — Free up space by removing junk files\n• 📊 System Specs — Show detailed hardware info\n\n**Advanced:**\n• 🛠️ Toolkit — 30+ maintenance tools organized by category\n• 💬 Ask me anything about PC issues — I'll give you step-by-step advice\n\nTry clicking a quick action button below!",
   'help': "Here's how I can help you:\n\n**For Diagnostics:**\n• Type `scan` or click **One Click Diagnose**\n• I'll check disk health, network connectivity, and more\n\n**For Fixes:**\n• `speed up my startup` — Optimize boot time\n• `fix my internet` — Reset network stack\n• `boost my pc` — Performance optimization\n• `clean up disk space` — Remove junk files\n\n**For Info:**\n• `system specs` — Show your hardware details\n• `what can you do` — See all available commands\n\n**For Advanced Tools:**\n• Check the **Toolkit** tab for 30+ system utilities\n\nJust describe your issue and I'll help!",
   'slow': "Your PC is running slow? Let me help diagnose and fix it:\n\n**Quick fixes:**\n• Type `boost my pc` — Cleans temp files and optimizes performance\n• Type `speed up my startup` — Reduces boot time\n• Click **Scan System** — Detects resource hogs\n\n**Common causes of slowness:**\n• Too many startup programs\n• Low disk space (less than 15% free)\n• Outdated drivers\n• Malware or bloatware\n• Fragmented HDD (less relevant for SSDs)\n\nWould you like me to run a diagnostic scan?",
   'virus': "If you suspect malware, here's what I recommend:\n\n**Immediate steps:**\n• I can run the **Microsoft Malicious Software Removal Tool** (MRT)\n• Check the **Toolkit** tab → System Cleanup section → option [15]\n\n**For real-time protection:**\n• Windows Defender is built-in and effective\n• Run a full scan: Settings → Update & Security → Windows Security → Virus & threat protection\n\n**Warning signs:**\n• Unexpected pop-ups\n• Slow performance\n• Unknown programs in Task Manager\n• Browser redirects\n\nWould you like me to launch the MRT scanner?",
@@ -415,8 +416,8 @@ const FALLBACK_RESPONSES: Record<string, string> = {
   'thanks': "Happy to help! Let me know if you need anything else.",
   'bye': "Goodbye! Take care of your PC. 🖥️",
   'goodbye': "See you later! Your PC is in good hands.",
-  'who are you': "I'm **PCFixAI** — your fully offline PC repair assistant.\n\nI can diagnose issues, run fixes, and provide guidance without needing an internet connection. All operations run locally on your machine.\n\nWhat can I help you with today?",
-  'what is this': "This is **PCFixAI** — an AI-powered PC repair tool that runs entirely offline.\n\n**What it does:**\n• Scans your system for common issues\n• Auto-fixes problems when possible\n• Provides step-by-step guidance\n• Includes 30+ maintenance tools\n\nTry the quick actions below or explore the Toolkit!",
+  'who are you': "I'm **PCFixAI** — your offline-first PC repair assistant.\n\nI can diagnose issues, run fixes, and provide guidance. If Ollama is installed, I can also provide AI-powered advice.\n\nWhat can I help you with today?",
+  'what is this': "This is **PCFixAI** — a PC repair tool that runs mostly offline.\n\n**What it does:**\n• Scans your system for common issues\n• Auto-fixes problems when possible\n• Provides step-by-step guidance\n• Includes 30+ maintenance tools\n• Optional: AI-powered chat with Ollama\n\nTry the quick actions below or explore the Toolkit!",
 }
 
 function findFallback(content: string): string | null {
@@ -438,6 +439,103 @@ function logJob(category: string, action: string, status: 'success' | 'failed', 
     exitCode,
   }
   useStore.getState().updateJob(job)
+}
+
+const OLLAMA_BASE = 'http://localhost:11434'
+
+export async function checkOllamaAvailable(): Promise<boolean> {
+  try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 2000)
+    const response = await tauriFetch(OLLAMA_BASE, {
+      method: 'GET',
+      signal: controller.signal,
+    })
+    clearTimeout(timeoutId)
+    return response.ok
+  } catch {
+    return false
+  }
+}
+
+export async function checkOllamaInstalled(): Promise<boolean> {
+  try {
+    const output = await runRawCommandOutput('winget', [
+      'list', '--id', 'Ollama.Ollama', '--accept-source-agreements'
+    ])
+    return output.includes('Ollama.Ollama')
+  } catch {
+    return false
+  }
+}
+
+export async function installOllama(): Promise<boolean> {
+  const code = await runRawCommand('winget', [
+    'install', 'Ollama.Ollama',
+    '--silent', '--accept-package-agreements', '--accept-source-agreements',
+    '--disable-interactivity',
+  ])
+  return code === 0
+}
+
+export async function startOllama(): Promise<boolean> {
+  try {
+    await runRawCommand('powershell', [
+      '-NoProfile', '-Command',
+      'Start-Process "ollama" -ArgumentList "serve" -WindowStyle Hidden'
+    ])
+    // Wait for Ollama to start
+    for (let i = 0; i < 10; i++) {
+      await new Promise(r => setTimeout(r, 1000))
+      if (await checkOllamaAvailable()) return true
+    }
+    return false
+  } catch {
+    return false
+  }
+}
+
+export async function pullOllamaModel(model: string): Promise<boolean> {
+  try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 300000) // 5 minutes
+    const response = await tauriFetch(`${OLLAMA_BASE}/api/pull`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: model, stream: false }),
+      signal: controller.signal,
+    })
+    clearTimeout(timeoutId)
+    return response.ok
+  } catch {
+    return false
+  }
+}
+
+async function callOllama(messages: { role: string; content: string }[], model: string): Promise<string> {
+  const systemMessage = {
+    role: 'system',
+    content: 'You are PCFixAI, a Windows PC repair assistant. You can run PowerShell commands to diagnose and fix issues. Give concise, actionable advice. If you need to run a command, explain what it does first. Keep responses under 300 words unless the user asks for detail.',
+  }
+
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 30000)
+  const response = await tauriFetch(`${OLLAMA_BASE}/api/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model,
+      messages: [systemMessage, ...messages],
+      stream: false,
+    }),
+    signal: controller.signal,
+  })
+  clearTimeout(timeoutId)
+
+  if (!response.ok) throw new Error(`Ollama returned ${response.status}`)
+
+  const data = await response.json()
+  return data.message?.content || 'No response from Ollama.'
 }
 
 export function useLocalAI() {
@@ -552,6 +650,23 @@ export function useLocalAI() {
     const fallback = findFallback(content)
     if (fallback) {
       appendChatMessage({ id: Date.now().toString() + '-fb', role: 'assistant', content: fallback })
+      return
+    }
+
+    const { settings, ollamaStatus } = useStore.getState()
+    if (settings.localModelExecution && ollamaStatus === 'ready') {
+      setIsGenerating(true)
+      const respId = Date.now().toString() + '-ai'
+      appendChatMessage({ id: respId, role: 'assistant', content: '🤔 Thinking...' })
+      try {
+        const chatHistory = useStore.getState().chatMessages.map(m => ({ role: m.role, content: m.content }))
+        const aiResponse = await callOllama(chatHistory, settings.ollamaModel)
+        updateLastChatMessage(aiResponse)
+      } catch (e) {
+        updateLastChatMessage(`I'm not sure how to help with that. You can try:\n\n• \`scan\` — Full system diagnosis\n• \`speed up my startup\` — Optimize boot time\n• \`fix my internet\` — Reset network stack\n• \`boost my pc\` — Performance optimization\n• \`clean up disk space\` — Remove junk files\n• \`system specs\` — Show hardware details\n\nOr use the **Toolkit** tab for 30+ advanced maintenance tools.`)
+      } finally {
+        setIsGenerating(false)
+      }
       return
     }
 

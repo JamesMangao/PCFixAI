@@ -1,15 +1,16 @@
 # PCFixAI
 
-**AI-powered PC repair and diagnostics — fully offline.**
+**Intelligent PC repair and diagnostics — offline-first.**
 
-PCFixAI is a desktop application that diagnoses and fixes common Windows issues in one click. It scans your system, creates a restore point, and auto-repairs detected problems — all without sending any data to the cloud.
+PCFixAI is a desktop application that diagnoses and fixes common Windows issues in one click. It scans your system, creates a restore point, and auto-repairs detected problems. Most features work offline; optional AI-powered chat via Ollama.
 
 ---
 
-## Latest Update — v1.1.0 (June 2026)
+## Latest Update — v1.2.0 (June 2026)
 
 ### New Features
 
+- **Ollama AI Integration** — Auto-detects Ollama, in-app install via winget, AI-powered chat for open-ended questions with graceful fallback to rule-based responses
 - **Winget App Updater** — Automatically checks for outdated packages via winget, installs winget if missing, updates individual or all apps silently
 - **SFC/DISM Manager** — Visual interface for System File Checker and DISM restore health scans with real-time progress, result display, and restart notifications
 - **Network Speed Test** — Built-in download/upload/ping speed test using PowerShell (no browser required), with speed ratings (Excellent/Good/Fair/Slow)
@@ -18,11 +19,12 @@ PCFixAI is a desktop application that diagnoses and fixes common Windows issues 
 ### Improvements
 
 - **Premium UI** — Animated message bubbles, spring-physics accordion, gradient health header, card hover effects, sidebar glow indicators, staggered entrance animations
-- **Functional Settings** — Theme dropdown, notifications toggle, log retention, reset all settings
+- **Functional Settings** — Theme dropdown, notifications toggle, log retention, Ollama model config, reset all settings
 - **History Logging** — All actions (chat quick actions, dashboard buttons, toolkit operations, scan results) now appear in History
 - **Real System Specs** — "Show my system specs" returns live WMI data (CPU, RAM, GPU, Disk, Motherboard, OS)
 - **Dashboard Quick Actions** — Temp File Cleanup, DNS Flush, Browser Cache Sweep buttons now execute real commands with status feedback
 - **Enhanced Scan** — Rust backend now checks disk space, CPU usage, memory usage, and startup program count
+- **Honest External Tools** — Security warnings on internet-dependent tools, clear "Remote Script" badges
 
 ---
 
@@ -33,16 +35,36 @@ PCFixAI is a desktop application that diagnoses and fixes common Windows issues 
 - **Live System Metrics** — Real-time CPU, RAM, Disk I/O, and Network usage with sparkline charts
 - **AI Predictions** — CPU trend analysis, disk health monitoring, system stability scoring
 - **Chat Assistant** — Describe your issue or use quick-action buttons to execute real fixes
+- **Optional AI** — Install Ollama + llama3.2:3b for AI-powered chat responses (auto-detected, in-app install)
 - **Restore Points** — Every scan creates a Windows System Restore point; all changes are reversible
 - **Job History** — Full audit trail of every action with exit codes and status
 - **Privilege Detection** — Automatically detects admin elevation and warns when deep fixes are restricted
 - **Toolkit** — 12 system tools across 12 tabs:
-  - Performance, Hardware, Cleanup, Troubleshooting, Advanced, Drivers, External Tools
+  - Performance, Hardware, Cleanup, Troubleshooting, Advanced, Drivers
+  - External Tools (internet-required, with security warnings)
   - Startup Programs, Running Processes, System Services, Installed Apps
-  - **App Updates (Winget)**, **SFC/DISM**, **Speed Test**, **Driver Backup**
-- **Fully Offline** — No internet connection required, no data leaves your machine
+  - App Updates (Winget), SFC/DISM, Speed Test, Driver Backup
 
 ![alt text](image.png)
+
+---
+
+## Internet-Required Features
+
+Most features work offline. These require an internet connection:
+
+| Feature | What it downloads | Why |
+|---------|------------------|-----|
+| Speed Test | Test files from speedtest.tele2.net | Measures real throughput |
+| Winget Install | Winget installer from GitHub | Not bundled with Windows |
+| Winget Updates | Package updates from winget sources | Updates come from vendors |
+| Auto Update Drivers | PSWindowsUpdate module from PowerShell Gallery | Module not bundled |
+| External Power Tools | MAS, WinUtil, WinScript, Winhance scripts | Third-party tools (see warning below) |
+| Ollama (optional) | LLM model from Ollama registry | ~2 GB download for llama3.2:3b |
+
+### External Tools Security Notice
+
+The "External Power Tools" category (MAS, WinUtil, WinScript, Winhance) downloads and executes remote scripts with full system access. These are third-party projects not affiliated with PCFixAI. Verify the source before running.
 
 ---
 
@@ -122,9 +144,23 @@ npm run tauri:build
    - `Boost my PC` — Clean caches, activate High Performance power plan
    - `Clean up disk space` — Remove temp files and browser caches
    - `Show my system specs` — Display OS, CPU, RAM, architecture info
-4. **Toolkit** — Browse 30+ system tools across 8 categories; interactive managers for startup programs, running processes, services, installed apps, winget updates, SFC/DISM, speed test, and driver backup
+4. **Toolkit** — Browse 30+ system tools across 12 tabs; interactive managers for startup programs, running processes, services, installed apps, winget updates, SFC/DISM, speed test, and driver backup
 5. **History** — View all past jobs with stats (total ops, success rate, timestamps)
 6. **Settings** — Adjust preferences (persisted across restarts)
+
+### Optional: AI-Powered Chat
+
+For AI-powered responses to open-ended questions:
+
+```powershell
+# Install Ollama (or use the in-app button)
+winget install Ollama.Ollama
+
+# Pull a language model
+ollama pull llama3.2:3b
+```
+
+PCFixAI auto-detects Ollama and prompts for installation if not found.
 
 ---
 
@@ -137,6 +173,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full system design, including:
 - Event/IPC architecture
 - Scan and agent loop decision tree
 - Rollback and restore point system
+- Ollama AI integration
 - Extension points for new fix modules
 
 ---

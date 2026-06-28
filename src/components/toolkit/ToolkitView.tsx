@@ -6,7 +6,7 @@ import {
   Cpu, HardDrive, Wifi, Wrench, Shield, Settings,
   Battery, Trash2, RefreshCw, Download, FileText,
   Printer, AlertTriangle, Zap, Power,
-  Network, Database, Eye, Globe, Activity
+  Network, Database, Eye, Activity
 } from 'lucide-react'
 import { StartupManager } from './StartupManager'
 import { ProcessManager } from './ProcessManager'
@@ -343,7 +343,7 @@ const CATEGORIES: ToolkitCategory[] = [
         color: '#00e676',
         command: 'powershell',
         args: ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', 'irm https://get.activated.win | iex'],
-        confirm: 'This will download and run the Microsoft Activation Scripts from GitHub. Requires internet connection.',
+        confirm: 'WARNING: This will download and execute a remote script from GitHub (get.activated.win). This script runs with full system access. Only proceed if you trust the source. Requires internet connection.',
         internetRequired: true,
       },
       {
@@ -354,7 +354,7 @@ const CATEGORIES: ToolkitCategory[] = [
         color: '#00d4ff',
         command: 'powershell',
         args: ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', 'irm https://christitus.com/win | iex'],
-        confirm: 'This will download and run Chris Titus Tech\'s Windows Utility from the internet. Requires internet connection.',
+        confirm: 'WARNING: This will download and execute a remote script from christitus.com. This script runs with full system access. Only proceed if you trust the source. Requires internet connection.',
         internetRequired: true,
       },
       {
@@ -365,7 +365,7 @@ const CATEGORIES: ToolkitCategory[] = [
         color: '#ffab40',
         command: 'powershell',
         args: ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', 'irm https://winscript.cc/irm | iex'],
-        confirm: 'This will download and run WinScript from the internet. Requires internet connection.',
+        confirm: 'WARNING: This will download and execute a remote script from winscript.cc. This script runs with full system access. Only proceed if you trust the source. Requires internet connection.',
         internetRequired: true,
       },
       {
@@ -376,7 +376,7 @@ const CATEGORIES: ToolkitCategory[] = [
         color: '#9c27b0',
         command: 'powershell',
         args: ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', 'irm https://get.winhance.net | iex'],
-        confirm: 'This will download and run Winhance from the internet. Requires internet connection.',
+        confirm: 'WARNING: This will download and execute a remote script from get.winhance.net. This script runs with full system access. Only proceed if you trust the source. Requires internet connection.',
         internetRequired: true,
       },
     ],
@@ -609,7 +609,28 @@ export function ToolkitView() {
                       </div>
                     </div>
                   ) : (
-                    cat.actions.map((action, actionIndex) => {
+                    <>
+                      {cat.id === 'external' && (
+                        <div style={{
+                          padding: '10px 14px',
+                          background: 'rgba(255,68,68,0.06)',
+                          borderRadius: 'var(--r2)',
+                          border: '1px solid rgba(255,68,68,0.2)',
+                          marginBottom: 'var(--s2)',
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                            <AlertTriangle size={14} style={{ color: 'var(--error)' }} />
+                            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--error)' }}>
+                              Security Warning
+                            </span>
+                          </div>
+                          <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                            These tools download scripts from the internet and execute them directly on your PC.
+                            Verify the source before running. PCFixAI is not affiliated with these third-party projects.
+                          </p>
+                        </div>
+                      )}
+                      {cat.actions.map((action, actionIndex) => {
                       const Icon = action.icon
                       const result = actionResults[action.id]
                       const isRunning = runningAction === action.id
@@ -666,14 +687,14 @@ export function ToolkitView() {
                               {action.internetRequired && (
                                 <span style={{
                                   fontSize: 9, fontWeight: 600,
-                                  color: 'var(--accent)',
+                                  color: 'var(--error)',
                                   padding: '1px 6px',
-                                  border: '1px solid rgba(0,212,255,0.3)',
+                                  border: '1px solid rgba(255,68,68,0.3)',
                                   borderRadius: 4,
                                   textTransform: 'uppercase',
                                   display: 'flex', alignItems: 'center', gap: 3,
                                 }}>
-                                  <Globe size={8} /> Online
+                                  <AlertTriangle size={8} /> Remote Script
                                 </span>
                               )}
                               {action.dangerous && (
@@ -733,7 +754,8 @@ export function ToolkitView() {
                           </motion.button>
                         </motion.div>
                       )
-                    })
+                    })}
+                    </>
                   )}
                 </div>
               </motion.div>

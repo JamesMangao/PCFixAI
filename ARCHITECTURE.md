@@ -272,23 +272,40 @@ The frontend uses a single Zustand store with `persist` middleware for offline r
 
 ## 9. LLM Integration (Optional AI Layer)
 
-The agent loop can be enhanced with an LLM reasoning step:
+The chat assistant uses a rule-based fallback system for known commands, with optional Ollama integration for open-ended questions.
 
-```rust
-// After collecting findings, before running fixes:
-async fn llm_triage(findings: &[Finding], api_key: &str) -> Vec<String> {
-    // POST to local Ollama or remote OpenAI-compatible endpoint
-    // Prompt: "Given these system findings, in what order should fixes be applied?
-    //          Return a JSON array of finding IDs sorted by recommended execution order."
-    // Parse response → reorder findings before agent loop
-}
+### How It Works
+
+1. **Keyword matching** — Hardcoded commands like "scan", "fix my internet", "boost my pc" execute PowerShell commands directly
+2. **Fallback dictionary** — Common questions ("slow", "virus", "blue screen") return pre-written responses
+3. **Ollama (optional)** — If installed and running, unmatched queries are sent to a local LLM via `@tauri-apps/plugin-http`
+
+### Ollama Integration
+
+```
+App mounts → GET localhost:11434 (2s timeout)
+  → Ollama responding? Use it for unmatched queries
+  → Not responding? Check if installed via winget
+    → Installed but not running? Prompt to start
+    → Not installed? Prompt to install via winget
 ```
 
-Local-first recommendation: **Ollama + llama3.2:3b** — runs on-device, no API key required,
-~2 GB RAM. Feed it the Finding descriptions and ask for fix prioritisation or root-cause reasoning.
+**Setup:**
+- Install: `winget install Ollama.Ollama`
+- Pull model: `ollama pull llama3.2:3b`
+- Default model: `llama3.2:3b` (~2 GB download, ~3.5 GB RAM)
 
-> Note: The previous `@mlc-ai/web-llm` integration was removed to keep the app fully offline
-> with no 8 GB model download. The chat now uses rule-based responses + backend execution.
+**Communication:** Frontend calls Ollama REST API at `localhost:11434/api/chat` via `@tauri-apps/plugin-http` (bypasses WebView CORS).
+
+**System prompt:** "You are PCFixAI, a Windows PC repair assistant. Give concise, actionable advice."
+
+### Graceful Fallback
+
+- Ollama not installed → rule-based responses only
+- Ollama not running → rule-based responses only
+- Ollama error → generic "I don't understand" message with command suggestions
+
+> Note: The previous `@mlc-ai/web-llm` integration was removed due to the 8 GB model download requirement. Ollama provides a better experience with smaller models.
 
 ---
 

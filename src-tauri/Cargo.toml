@@ -26,6 +26,7 @@ uuid                 = { version = "1", features = ["v4"] }
 anyhow               = "1"
 tracing              = "0.1"
 tracing-subscriber   = { version = "0.3", features = ["env-filter"] }
+tauri-plugin-http = "2"
 
 [target.'cfg(not(target_os = "windows"))'.dependencies]
 libc = "0.2"

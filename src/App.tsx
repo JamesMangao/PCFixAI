@@ -3,6 +3,7 @@ import { useStore } from './store'
 import { useTauriEvents } from './hooks/useTauriEvents'
 import { TitleBar } from './components/shared/TitleBar'
 import { PrivilegeBanner } from './components/shared/PrivilegeBanner'
+import { OllamaBanner } from './components/shared/OllamaBanner'
 import { Sidebar } from './components/shared/Sidebar'
 import { Dashboard } from './components/dashboard/Dashboard'
 import { ToolkitView } from './components/toolkit/ToolkitView'
@@ -29,6 +30,7 @@ export default function App() {
     }}>
       <TitleBar />
       {!isElevated && <PrivilegeBanner />}
+      <OllamaBanner />
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         <Sidebar />
