@@ -14,6 +14,9 @@ use tokio::process::Command;
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
 // ─────────────────────────────────────────────────────────────
 //  Shared State
 // ─────────────────────────────────────────────────────────────
@@ -567,12 +570,12 @@ async fn run_agent_loop(app: AppHandle, state: Arc<AppState>, findings: Vec<Find
             },
         );
 
-        let success = match finding.category.as_str() {
+        let (success, _output) = match finding.category.as_str() {
             "Network" => fix_network(&app, finding).await,
             "Performance" => fix_performance(&app, finding).await,
             "OS" => fix_os(&app, finding).await,
             "Security" => fix_security(&app, finding).await,
-            _ => false,
+            _ => (false, String::new()),
         };
 
         let job = JobEntry {
@@ -607,25 +610,66 @@ async fn run_agent_loop(app: AppHandle, state: Arc<AppState>, findings: Vec<Find
     }
 }
 
-async fn fix_network(app: &AppHandle, _finding: &Finding) -> bool {
+async fn fix_network(app: &AppHandle, _finding: &Finding) -> (bool, String) {
     let id = Uuid::new_v4().to_string();
 
     #[cfg(target_os = "windows")]
-    let (code, _) = run_command_streaming(app, &id, "ipconfig", &["/flushdns"])
+    let (code, lines) = run_command_streaming(app, &id, "ipconfig", &["/flushdns"])
         .await
         .unwrap_or((-1, vec![]));
 
     #[cfg(not(target_os = "windows"))]
-    let code = 0i32;
+    let (code, lines) = (0i32, vec![]);
 
-    code == 0
+    (code == 0, lines.join("\n"))
 }
 
-async fn fix_performance(app: &AppHandle, _finding: &Finding) -> bool {
-    let id = Uuid::new_v4().to_string();
+async fn fix_performance(app: &AppHandle, finding: &Finding) -> (bool, String) {
     #[cfg(target_os = "windows")]
     {
-        let (code, _) = run_command_streaming(
+        let is_startup = finding.title.contains("startup");
+
+        if is_startup {
+            let script = r#"
+                $essential = @('SecurityHealth','Windows Defender','Microsoft Security Client','svchost','ctfmon','Run','Explorer')
+                $disabled = 0
+                $paths = @(
+                    'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run',
+                    'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce',
+                    'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run',
+                    'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce'
+                )
+                foreach ($p in $paths) {
+                    if (-not (Test-Path $p)) { continue }
+                    $props = Get-ItemProperty -Path $p -ErrorAction SilentlyContinue
+                    if (-not $props) { continue }
+                    $props.PSObject.Properties | Where-Object {
+                        $_.MemberType -eq 'NoteProperty' -and
+                        $_.Name -notlike 'PS*' -and
+                        -not ($essential | Where-Object { $_.Name -like "*$_*" })
+                    } | ForEach-Object {
+                        try {
+                            Remove-ItemProperty -Path $p -Name $_.Name -Force -ErrorAction Stop
+                            $disabled++
+                        } catch {}
+                    }
+                }
+                Write-Output "Disabled $disabled startup items"
+            "#;
+            let id = Uuid::new_v4().to_string();
+            let (code, lines) = run_command_streaming(
+                app,
+                &id,
+                "powershell",
+                &["-NonInteractive", "-NoProfile", "-Command", script],
+            )
+            .await
+            .unwrap_or((-1, vec![]));
+            return (code == 0, lines.join("\n"));
+        }
+
+        let id = Uuid::new_v4().to_string();
+        let (code, lines) = run_command_streaming(
             app,
             &id,
             "powershell",
@@ -639,13 +683,13 @@ async fn fix_performance(app: &AppHandle, _finding: &Finding) -> bool {
         )
         .await
         .unwrap_or((-1, vec![]));
-        return code == 0;
+        return (code == 0, lines.join("\n"));
     }
     #[cfg(not(target_os = "windows"))]
-    true
+    (true, String::new())
 }
 
-async fn fix_os(app: &AppHandle, _finding: &Finding) -> bool {
+async fn fix_os(app: &AppHandle, _finding: &Finding) -> (bool, String) {
     let id = Uuid::new_v4().to_string();
     #[cfg(target_os = "windows")]
     {
@@ -659,23 +703,23 @@ async fn fix_os(app: &AppHandle, _finding: &Finding) -> bool {
         .unwrap_or((-1, vec![]));
 
         if dism_code != 0 || dism_out.iter().any(|l| l.contains("corruption")) {
-            let (sfc_code, _) =
+            let (sfc_code, sfc_lines) =
                 run_command_streaming(app, &Uuid::new_v4().to_string(), "sfc", &["/scannow"])
                     .await
                     .unwrap_or((-1, vec![]));
-            return sfc_code == 0;
+            return (sfc_code == 0, sfc_lines.join("\n"));
         }
-        return dism_code == 0;
+        return (dism_code == 0, dism_out.join("\n"));
     }
     #[cfg(not(target_os = "windows"))]
-    true
+    (true, String::new())
 }
 
-async fn fix_security(app: &AppHandle, _finding: &Finding) -> bool {
+async fn fix_security(app: &AppHandle, _finding: &Finding) -> (bool, String) {
     let id = Uuid::new_v4().to_string();
     #[cfg(target_os = "windows")]
     {
-        let (code, _) = run_command_streaming(
+        let (code, lines) = run_command_streaming(
             app,
             &id,
             "powershell",
@@ -693,10 +737,10 @@ async fn fix_security(app: &AppHandle, _finding: &Finding) -> bool {
         )
         .await
         .unwrap_or((-1, vec![]));
-        return code == 0;
+        return (code == 0, lines.join("\n"));
     }
     #[cfg(not(target_os = "windows"))]
-    true
+    (true, String::new())
 }
 
 async fn run_escalation(app: &AppHandle, finding: &Finding) {
@@ -829,7 +873,7 @@ async fn scan_system(
 }
 
 #[tauri::command]
-async fn execute_fix(app: AppHandle, category: String, action: String) -> Result<bool, String> {
+async fn execute_fix(app: AppHandle, category: String, action: String) -> Result<(bool, String), String> {
     let dummy = Finding {
         id: Uuid::new_v4().to_string(),
         severity: Severity::Medium,
@@ -845,7 +889,7 @@ async fn execute_fix(app: AppHandle, category: String, action: String) -> Result
         "Performance" => fix_performance(&app, &dummy).await,
         "OS" => fix_os(&app, &dummy).await,
         "Security" => fix_security(&app, &dummy).await,
-        _ => false,
+        _ => (false, String::new()),
     };
 
     Ok(result)
@@ -871,17 +915,63 @@ async fn run_raw_command(
 }
 
 #[tauri::command]
+async fn spawn_detached(program: String, args: Vec<String>) -> Result<bool, String> {
+    let mut cmd = std::process::Command::new(&program);
+    cmd.args(&args);
+    cmd.stdout(std::process::Stdio::null());
+    cmd.stderr(std::process::Stdio::null());
+    cmd.stdin(std::process::Stdio::null());
+
+    #[cfg(target_os = "windows")]
+    {
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        const DETACHED_PROCESS: u32 = 0x00000008;
+        cmd.creation_flags(CREATE_NO_WINDOW | DETACHED_PROCESS);
+    }
+
+    let child = cmd.spawn().map_err(|e| format!("Failed to start {}: {}", program, e))?;
+    std::mem::forget(child);
+    Ok(true)
+}
+
+#[tauri::command]
+async fn relaunch_elevated() -> Result<(), String> {
+    let exe_path = std::env::current_exe().map_err(|e| format!("{}", e))?;
+    let exe_str = exe_path.to_str().ok_or("Invalid UTF-8 in path")?.to_string();
+
+    #[cfg(target_os = "windows")]
+    {
+        let script = format!(
+            "Start-Process -FilePath '{}' -Verb RunAs",
+            exe_str.replace('\'', "''")
+        );
+        std::process::Command::new("powershell")
+            .args(["-NoProfile", "-Command", &script])
+            .spawn()
+            .map_err(|e| format!("Failed to launch elevated: {}", e))?;
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        let _ = exe_str;
+        return Err("Elevation not supported on this platform.".to_string());
+    }
+
+    std::process::exit(0);
+}
+
+#[tauri::command]
 async fn run_raw_command_output(
     app: AppHandle,
     program: String,
     args: Vec<String>,
-) -> Result<String, String> {
+) -> Result<(i32, String), String> {
     let arg_refs: Vec<&str> = args.iter().map(|s| s.as_str()).collect();
     let id = Uuid::new_v4().to_string();
-    let (_, lines) = run_command_streaming(&app, &id, &program, &arg_refs)
+    let (code, lines) = run_command_streaming(&app, &id, &program, &arg_refs)
         .await
         .map_err(|e| e.to_string())?;
-    Ok(lines.join("\n"))
+    Ok((code, lines.join("\n")))
 }
 
 #[tauri::command]
@@ -1146,6 +1236,8 @@ pub fn run() {
             get_job_log,
             run_raw_command,
             run_raw_command_output,
+            spawn_detached,
+            relaunch_elevated,
             get_real_metrics,
             get_startup_items,
             get_processes,

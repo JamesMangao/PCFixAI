@@ -76,6 +76,8 @@ interface PCFixAIStore {
 
   isElevated: boolean
   setElevated: (v: boolean) => void
+  privilegeChecked: boolean
+  setPrivilegeChecked: (v: boolean) => void
 
   scanPhase: ScanPhase
   setScanPhase: (p: ScanPhase) => void
@@ -109,13 +111,16 @@ interface PCFixAIStore {
   ollamaStatus: OllamaStatus
   setOllamaStatus: (s: OllamaStatus) => void
 
+  activeTask: { name: string; status: 'running' | 'done' | 'error' } | null
+  setActiveTask: (task: { name: string; status: 'running' | 'done' | 'error' } | null) => void
+
   _hydrated: boolean
 }
 
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
   role: 'assistant',
-  content: "Hey! Tell me what's going on with your PC.\n\nWhat I do well: • Diagnose with real system data (Event Log, services, drivers, BSOD history) • Show you the plan before any change • Snapshot before every fix, with one-click undo always available • Optional: AI-powered chat with Ollama\n\nTry: 'blue screen yesterday', 'boot loop after April update', 'Clean my temp files', or just click a quick action below."
+  content: "Welcome to PCFixAI.\n\nI diagnose and repair common Windows issues. Here is what I can do:\n\n- Diagnose with real system data (Event Log, services, drivers, BSOD history)\n- Show a plan before making any changes\n- Snapshot before every fix, with one-click undo available\n- Optional: AI-powered chat with Ollama (connect via localhost:11434)\n\nTry: 'blue screen yesterday', 'boot loop after April update', 'Clean my temp files', or select a quick action below."
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -138,6 +143,8 @@ export const useStore = create<PCFixAIStore>()(
 
       isElevated: false,
       setElevated: (isElevated) => set({ isElevated }),
+      privilegeChecked: false,
+      setPrivilegeChecked: (privilegeChecked) => set({ privilegeChecked }),
 
       scanPhase: { phase: 'idle', message: '' },
       setScanPhase: (scanPhase) => set({ scanPhase }),
@@ -192,6 +199,9 @@ export const useStore = create<PCFixAIStore>()(
       ollamaStatus: 'checking',
       setOllamaStatus: (ollamaStatus) => set({ ollamaStatus }),
 
+      activeTask: null,
+      setActiveTask: (activeTask) => set({ activeTask }),
+
       _hydrated: false,
     }),
     {
@@ -201,6 +211,7 @@ export const useStore = create<PCFixAIStore>()(
         chatMessages: state.chatMessages,
         settings: state.settings,
         mode: state.mode,
+        findings: state.findings,
       }),
       onRehydrateStorage: () => () => {
         useStore.setState({ _hydrated: true })

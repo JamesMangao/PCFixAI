@@ -29,7 +29,7 @@ export function DriverBackup() {
     loadDrivers()
   }, [])
 
-  async function loadDrivers() {
+async function loadDrivers() {
     setLoading(true)
     try {
       const output = await runRawCommandOutput('powershell', [
@@ -38,7 +38,7 @@ export function DriverBackup() {
         'Select-Object ClassName, Manufacturer, DeviceName, DriverVersion, InfName | ' +
         'ConvertTo-Json -Compress'
       ])
-      const parsed = JSON.parse(output || '[]')
+      const parsed = JSON.parse(output.output || '[]')
       const arr = Array.isArray(parsed) ? parsed : [parsed]
       setDrivers(arr.map((d: any) => ({
         className: d.ClassName || '',
@@ -47,14 +47,14 @@ export function DriverBackup() {
         version: d.DriverVersion || '',
         infName: d.InfName || '',
       })))
-    } catch {
+} catch {
       setDrivers([])
     } finally {
       setLoading(false)
     }
   }
 
-  async function selectBackupFolder() {
+async function selectBackupFolder() {
     try {
       const output = await runRawCommandOutput('powershell', [
         '-NoProfile', '-Command',
@@ -63,7 +63,7 @@ export function DriverBackup() {
         '$f.Description = "Select folder to backup drivers"; ' +
         'if ($f.ShowDialog() -eq "OK") { Write-Output $f.SelectedPath }'
       ])
-      if (output.trim()) setBackupPath(output.trim())
+      if (output.output.trim()) setBackupPath(output.output.trim())
     } catch { /* cancelled */ }
   }
 
@@ -91,7 +91,7 @@ export function DriverBackup() {
     }
   }
 
-  async function selectRestoreFolder() {
+async function selectRestoreFolder() {
     try {
       const output = await runRawCommandOutput('powershell', [
         '-NoProfile', '-Command',
@@ -100,7 +100,7 @@ export function DriverBackup() {
         '$f.Description = "Select driver backup folder"; ' +
         'if ($f.ShowDialog() -eq "OK") { Write-Output $f.SelectedPath }'
       ])
-      if (output.trim()) setRestorePath(output.trim())
+      if (output.output.trim()) setRestorePath(output.output.trim())
     } catch { /* cancelled */ }
   }
 

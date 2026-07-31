@@ -110,27 +110,27 @@ export function Sidebar() {
         <button
           onClick={() => window.open('https://github.com/JamesMangao/PCFixAI/issues', '_blank')}
           style={{
-          display: 'flex', alignItems: 'center', gap: 'var(--s2)',
-          background: 'transparent', border: 'none',
-          color: 'var(--text-muted)', fontSize: 12,
-          cursor: 'pointer', paddingLeft: 'var(--s2)',
-          transition: 'color var(--transition-fast)',
-          borderRadius: 'var(--r1)',
-          padding: '4px var(--s2)',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.color = 'var(--text-secondary)'
-          e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.color = 'var(--text-muted)'
-          e.currentTarget.style.background = 'transparent'
-        }}
+            display: 'flex', alignItems: 'center', gap: 'var(--s2)',
+            background: 'transparent', border: 'none',
+            color: 'var(--text-muted)', fontSize: 12,
+            cursor: 'pointer', paddingLeft: 'var(--s2)',
+            transition: 'color var(--transition-fast)',
+            borderRadius: 'var(--r1)',
+            padding: '4px var(--s2)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--text-secondary)'
+            e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--text-muted)'
+            e.currentTarget.style.background = 'transparent'
+          }}
         >
           <MessageCircleQuestion size={14} />
           Give Feedback
         </button>
-        
+
         <div style={{
           display: 'flex', alignItems: 'center', gap: 'var(--s2)',
           paddingLeft: 'var(--s2)', fontSize: 10, color: 'var(--text-muted)',
@@ -142,7 +142,7 @@ export function Sidebar() {
             boxShadow: '0 0 8px var(--success)',
             animation: 'glow-pulse 3s ease-in-out infinite',
           }} />
-          AI Active v1.7.5
+          AI Active v1.2.0
         </div>
       </div>
     </div>

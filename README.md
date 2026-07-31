@@ -45,8 +45,6 @@ PCFixAI is a desktop application that diagnoses and fixes common Windows issues 
   - Startup Programs, Running Processes, System Services, Installed Apps
   - App Updates (Winget), SFC/DISM, Speed Test, Driver Backup
 
-![alt text](image.png)
-
 ---
 
 ## Internet-Required Features

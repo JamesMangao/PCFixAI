@@ -29,6 +29,7 @@ export function useTauriEvents() {
       } catch {
         useStore.getState().setElevated(false)
       }
+      useStore.getState().setPrivilegeChecked(true)
 
       unlisteners.push(
         await listen<ScanStatusPayload>('scan-status', (event) => {
@@ -99,16 +100,20 @@ export async function startScan(): Promise<ScanResult> {
   }
 }
 
-export async function executeFix(category: string, action: string): Promise<boolean> {
-  return invoke<boolean>('execute_fix', { category, action })
+export async function executeFix(category: string, action: string): Promise<{ success: boolean; output: string }> {
+  return invoke<{ success: boolean; output: string }>('execute_fix', { category, action })
 }
 
 export async function runRawCommand(program: string, args: string[]): Promise<number> {
   return invoke<number>('run_raw_command', { program, args })
 }
 
-export async function runRawCommandOutput(program: string, args: string[]): Promise<string> {
-  return invoke<string>('run_raw_command_output', { program, args })
+export async function runRawCommandOutput(program: string, args: string[]): Promise<{ exitCode: number; output: string }> {
+  return invoke<{ exitCode: number; output: string }>('run_raw_command_output', { program, args })
+}
+
+export async function spawnDetached(program: string, args: string[]): Promise<boolean> {
+  return invoke<boolean>('spawn_detached', { program, args })
 }
 
 export async function getJobLog(): Promise<JobEntry[]> {
@@ -144,4 +149,8 @@ export async function manageService(name: string, action: string): Promise<boole
 
 export async function getInstalledApps(): Promise<string> {
   return invoke<string>('get_installed_apps')
+}
+
+export async function relaunchElevated(): Promise<void> {
+  await invoke('relaunch_elevated')
 }

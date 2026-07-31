@@ -55,7 +55,7 @@ async function getDetailedSystemSpecs(): Promise<string> {
 
   // CPU
   try {
-    const raw = await runRawCommandOutput('powershell', [
+    const { output: raw } = await runRawCommandOutput('powershell', [
       '-NoProfile', '-Command',
       'Get-CimInstance Win32_Processor | Select-Object Name, NumberOfCores, NumberOfLogicalProcessors, MaxClockSpeed | ConvertTo-Json'
     ])
@@ -69,7 +69,7 @@ async function getDetailedSystemSpecs(): Promise<string> {
 
   // RAM
   try {
-    const raw = await runRawCommandOutput('powershell', [
+    const { output: raw } = await runRawCommandOutput('powershell', [
       '-NoProfile', '-Command',
       '$mem = Get-CimInstance Win32_PhysicalMemory; $total = ($mem | Measure-Object -Property Capacity -Sum).Sum; $mem | Select-Object BankLabel, @{N="CapacityGB";E={[math]::Round($_.Capacity/1GB,2)}}, Speed, Manufacturer | ConvertTo-Json'
     ])
@@ -90,7 +90,7 @@ async function getDetailedSystemSpecs(): Promise<string> {
 
   // GPU
   try {
-    const raw = await runRawCommandOutput('powershell', [
+    const { output: raw } = await runRawCommandOutput('powershell', [
       '-NoProfile', '-Command',
       'Get-CimInstance Win32_VideoController | Select-Object Name, @{N="AdapterRAM_GB";E={[math]::Round($_.AdapterRAM/1GB,2)}}, DriverVersion | ConvertTo-Json'
     ])
@@ -106,7 +106,7 @@ async function getDetailedSystemSpecs(): Promise<string> {
 
   // Disk
   try {
-    const raw = await runRawCommandOutput('powershell', [
+    const { output: raw } = await runRawCommandOutput('powershell', [
       '-NoProfile', '-Command',
       'Get-PhysicalDisk | Select-Object FriendlyName, MediaType, @{N="SizeGB";E={[math]::Round($_.Size/1GB,2)}}, HealthStatus | ConvertTo-Json'
     ])
@@ -121,7 +121,7 @@ async function getDetailedSystemSpecs(): Promise<string> {
 
   // Motherboard
   try {
-    const raw = await runRawCommandOutput('powershell', [
+    const { output: raw } = await runRawCommandOutput('powershell', [
       '-NoProfile', '-Command',
       'Get-CimInstance Win32_BaseBoard | Select-Object Manufacturer, Product, Version | ConvertTo-Json'
     ])
@@ -134,7 +134,7 @@ async function getDetailedSystemSpecs(): Promise<string> {
 
   // OS
   try {
-    const raw = await runRawCommandOutput('powershell', [
+    const { output: raw } = await runRawCommandOutput('powershell', [
       '-NoProfile', '-Command',
       'Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version, BuildNumber, OSArchitecture | ConvertTo-Json'
     ])
@@ -165,7 +165,7 @@ async function handleSpeedUpStartup(): Promise<string> {
 
   // Clean temp files
   try {
-    const before = await runRawCommandOutput('powershell', [
+    const { output: before } = await runRawCommandOutput('powershell', [
       '-NonInteractive', '-NoProfile', '-Command',
       '$before = (Get-ChildItem "$env:TEMP" -Recurse -EA SilentlyContinue | Measure-Object -Property Length -Sum).Sum; Write-Output $before'
     ])
@@ -178,7 +178,7 @@ async function handleSpeedUpStartup(): Promise<string> {
       'Clear-RecycleBin -Force -ErrorAction SilentlyContinue'
     ])
 
-    const after = await runRawCommandOutput('powershell', [
+    const { output: after } = await runRawCommandOutput('powershell', [
       '-NonInteractive', '-NoProfile', '-Command',
       '$after = (Get-ChildItem "$env:TEMP" -Recurse -EA SilentlyContinue | Measure-Object -Property Length -Sum).Sum; Write-Output $after'
     ])
@@ -191,7 +191,7 @@ async function handleSpeedUpStartup(): Promise<string> {
 
   // Audit startup items
   try {
-    const raw = await runRawCommandOutput('powershell', [
+    const { output: raw } = await runRawCommandOutput('powershell', [
       '-NonInteractive', '-NoProfile', '-Command',
       'Get-CimInstance Win32_StartupCommand | Select-Object Name, Command, Location | ConvertTo-Json'
     ])
@@ -218,7 +218,7 @@ async function handleFixInternet(): Promise<string> {
 
   // Flush DNS
   try {
-    const out = await runRawCommandOutput('ipconfig', ['/flushdns'])
+    const { output: out } = await runRawCommandOutput('ipconfig', ['/flushdns'])
     const success = out.toLowerCase().includes('successfully') || out.toLowerCase().includes('flushed')
     sections.push(success ? '✅ DNS cache flushed successfully' : `⚠️ DNS flush: ${out.trim().substring(0, 80)}`)
   } catch {
@@ -227,8 +227,8 @@ async function handleFixInternet(): Promise<string> {
 
   // Release and renew IP
   try {
-    const release = await runRawCommandOutput('ipconfig', ['/release'])
-    const renew = await runRawCommandOutput('ipconfig', ['/renew'])
+    const { output: release } = await runRawCommandOutput('ipconfig', ['/release'])
+    const { output: renew } = await runRawCommandOutput('ipconfig', ['/renew'])
     const releaseOk = !release.toLowerCase().includes('failed')
     const renewOk = !renew.toLowerCase().includes('failed')
     sections.push(releaseOk && renewOk ? '✅ IP address released and renewed' : '⚠️ IP renewal had issues — adapter may not be DHCP-configured')
@@ -238,7 +238,7 @@ async function handleFixInternet(): Promise<string> {
 
   // Reset Winsock
   try {
-    const out = await runRawCommandOutput('netsh', ['winsock', 'reset'])
+    const { output: out } = await runRawCommandOutput('netsh', ['winsock', 'reset'])
     const success = out.toLowerCase().includes('successfully')
     sections.push(success ? '✅ Winsock catalog reset' : '⚠️ Winsock reset may need admin privileges')
   } catch {
@@ -247,7 +247,7 @@ async function handleFixInternet(): Promise<string> {
 
   // Reset TCP/IP
   try {
-    const out = await runRawCommandOutput('netsh', ['int', 'ip', 'reset'])
+    const { output: out } = await runRawCommandOutput('netsh', ['int', 'ip', 'reset'])
     const success = out.toLowerCase().includes('successfully')
     sections.push(success ? '✅ TCP/IP stack reset' : '⚠️ TCP/IP reset may need admin privileges')
   } catch {
@@ -265,7 +265,7 @@ async function handleBoostPC(): Promise<string> {
 
   // Clean temp files and recycle bin
   try {
-    const before = await runRawCommandOutput('powershell', [
+    const { output: before } = await runRawCommandOutput('powershell', [
       '-NonInteractive', '-NoProfile', '-Command',
       '$t = (Get-ChildItem "$env:TEMP" -Recurse -EA SilentlyContinue | Measure-Object -Property Length -Sum).Sum; Write-Output $t'
     ])
@@ -276,7 +276,7 @@ async function handleBoostPC(): Promise<string> {
       'Remove-Item -Path "$env:TEMP\\*" -Recurse -Force -ErrorAction SilentlyContinue; Clear-RecycleBin -Force -ErrorAction SilentlyContinue'
     ])
 
-    const after = await runRawCommandOutput('powershell', [
+    const { output: after } = await runRawCommandOutput('powershell', [
       '-NonInteractive', '-NoProfile', '-Command',
       '$a = (Get-ChildItem "$env:TEMP" -Recurse -EA SilentlyContinue | Measure-Object -Property Length -Sum).Sum; Write-Output $a'
     ])
@@ -289,7 +289,7 @@ async function handleBoostPC(): Promise<string> {
 
   // Clear browser caches
   try {
-    const out = await runRawCommandOutput('powershell', [
+    const { output: out } = await runRawCommandOutput('powershell', [
       '-NonInteractive', '-NoProfile', '-Command',
       `$before = 0; @('Chrome','Firefox','Edge','Brave') | ForEach-Object {
         $p = "$env:LOCALAPPDATA\\$_\\User Data\\Default\\Cache"
@@ -312,7 +312,7 @@ async function handleBoostPC(): Promise<string> {
 
   // Set High Performance power plan
   try {
-    const out = await runRawCommandOutput('powershell', [
+    const { output: out } = await runRawCommandOutput('powershell', [
       '-NonInteractive', '-NoProfile', '-Command',
       'powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c; $plan = powercfg /getactivescheme; Write-Output $plan'
     ])
@@ -336,7 +336,7 @@ async function handleCleanDisk(): Promise<string> {
 
   // Clean temp files
   try {
-    const before = await runRawCommandOutput('powershell', [
+    const { output: before } = await runRawCommandOutput('powershell', [
       '-NonInteractive', '-NoProfile', '-Command',
       '$t1 = (Get-ChildItem "$env:TEMP" -Recurse -EA SilentlyContinue | Measure-Object -Property Length -Sum).Sum; $t2 = (Get-ChildItem "$env:WINDIR\\Temp" -Recurse -EA SilentlyContinue | Measure-Object -Property Length -Sum).Sum; Write-Output ($t1 + $t2)'
     ])
@@ -349,7 +349,7 @@ async function handleCleanDisk(): Promise<string> {
       'Clear-RecycleBin -Force -ErrorAction SilentlyContinue'
     ])
 
-    const after = await runRawCommandOutput('powershell', [
+    const { output: after } = await runRawCommandOutput('powershell', [
       '-NonInteractive', '-NoProfile', '-Command',
       '$a1 = (Get-ChildItem "$env:TEMP" -Recurse -EA SilentlyContinue | Measure-Object -Property Length -Sum).Sum; $a2 = (Get-ChildItem "$env:WINDIR\\Temp" -Recurse -EA SilentlyContinue | Measure-Object -Property Length -Sum).Sum; Write-Output ($a1 + $a2)'
     ])
@@ -362,7 +362,7 @@ async function handleCleanDisk(): Promise<string> {
 
   // Clear browser caches
   try {
-    const cacheInfo = await runRawCommandOutput('powershell', [
+    const { output: cacheInfo } = await runRawCommandOutput('powershell', [
       '-NonInteractive', '-NoProfile', '-Command',
       `$total = 0; @('Chrome','Firefox','Edge','Brave') | ForEach-Object {
         $p = "$env:LOCALAPPDATA\\$_\\User Data\\Default\\Cache"
@@ -385,7 +385,7 @@ async function handleCleanDisk(): Promise<string> {
 
   // Show current disk space
   try {
-    const raw = await runRawCommandOutput('powershell', [
+    const { output: raw } = await runRawCommandOutput('powershell', [
       '-NonInteractive', '-NoProfile', '-Command',
       'Get-CimInstance Win32_LogicalDisk -Filter "DeviceID=\'C:\'" | Select-Object @{N="FreeGB";E={[math]::Round($_.FreeSpace/1GB,2)}}, @{N="TotalGB";E={[math]::Round($_.Size/1GB,2)}} | ConvertTo-Json'
     ])
@@ -460,7 +460,7 @@ export async function checkOllamaAvailable(): Promise<boolean> {
 
 export async function checkOllamaInstalled(): Promise<boolean> {
   try {
-    const output = await runRawCommandOutput('winget', [
+    const { output: output } = await runRawCommandOutput('winget', [
       'list', '--id', 'Ollama.Ollama', '--accept-source-agreements'
     ])
     return output.includes('Ollama.Ollama')

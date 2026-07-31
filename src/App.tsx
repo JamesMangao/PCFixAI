@@ -4,6 +4,7 @@ import { useTauriEvents } from './hooks/useTauriEvents'
 import { TitleBar } from './components/shared/TitleBar'
 import { PrivilegeBanner } from './components/shared/PrivilegeBanner'
 import { OllamaBanner } from './components/shared/OllamaBanner'
+import { AdminPrompt } from './components/shared/AdminPrompt'
 import { Sidebar } from './components/shared/Sidebar'
 import { Dashboard } from './components/dashboard/Dashboard'
 import { ToolkitView } from './components/toolkit/ToolkitView'
@@ -28,9 +29,10 @@ export default function App() {
       border: '1px solid var(--border-mid)',
       boxShadow: '0 32px 80px rgba(0,0,0,0.7)',
     }}>
+      <AdminPrompt />
       <TitleBar />
       {!isElevated && <PrivilegeBanner />}
-      <OllamaBanner />
+      {!isElevated && <OllamaBanner />}
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         <Sidebar />

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { runRawCommand } from '../../hooks/useTauriEvents'
+import { runRawCommandOutput, relaunchElevated } from '../../hooks/useTauriEvents'
 import { useStore, JobEntry } from '../../store'
 import {
   Cpu, HardDrive, Wifi, Wrench, Shield, Settings,
@@ -393,7 +393,7 @@ export function ToolkitView() {
   const [expandedCategory, setExpandedCategory] = useState<string | null>('performance')
   const [activeManager, setActiveManager] = useState<string>('startup')
   const [runningAction, setRunningAction] = useState<string | null>(null)
-  const [actionResults, setActionResult] = useState<Record<string, { status: 'success' | 'error' | 'info', message: string }>>({})
+  const [actionResults, setActionResult] = useState<Record<string, { status: 'success' | 'error' | 'info', message: string, output?: string }>>({})
 
   const MANAGER_TABS = [
     { id: 'startup', label: 'Startup Programs', icon: Zap, color: '#ffab40', component: StartupManager },
@@ -412,16 +412,38 @@ export function ToolkitView() {
       if (!confirmed) return
     }
 
+    if (action.adminRequired) {
+      const { isElevated } = useStore.getState()
+      if (!isElevated) {
+        const confirmed = window.confirm(
+          `"${action.label}" requires administrator privileges.\n\n` +
+          `Click OK to relaunch PCFixAI as administrator, or Cancel to skip.`
+        )
+        if (confirmed) {
+          await relaunchElevated()
+        }
+        return
+      }
+    }
+
+    const store = useStore.getState()
+    store.setActiveTask({ name: `Running: ${action.label}`, status: 'running' })
     setRunningAction(action.id)
     setActionResult(prev => ({ ...prev, [action.id]: { status: 'info', message: 'Running...' } }))
 
     try {
-      const exitCode = await runRawCommand(action.command, action.args)
+      const { exitCode, output } = await runRawCommandOutput(action.command, action.args)
       const status = exitCode === 0 ? 'success' : 'error'
       const message = exitCode === 0
         ? `${action.label} completed successfully`
-        : `${action.label} finished with exit code ${exitCode}`
-      setActionResult(prev => ({ ...prev, [action.id]: { status, message } }))
+        : `${action.label} failed with exit code ${exitCode}`
+      setActionResult(prev => ({
+        ...prev,
+        [action.id]: { status, message, output: output || undefined },
+      }))
+
+      store.setActiveTask({ name: `Running: ${action.label}`, status: exitCode === 0 ? 'done' : 'error' })
+      setTimeout(() => store.setActiveTask(null), 2000)
 
       const job: JobEntry = {
         id: Date.now().toString(),
@@ -429,7 +451,7 @@ export function ToolkitView() {
         category: 'Toolkit',
         action: action.label,
         status: exitCode === 0 ? 'success' : 'failed',
-        output: [message],
+        output: output ? [message, output] : [message],
         exitCode,
       }
       useStore.getState().updateJob(job)
@@ -437,8 +459,10 @@ export function ToolkitView() {
       const msg = e instanceof Error ? e.message : String(e)
       setActionResult(prev => ({
         ...prev,
-        [action.id]: { status: 'error', message: msg }
+        [action.id]: { status: 'error', message: msg },
       }))
+      store.setActiveTask({ name: `Running: ${action.label}`, status: 'error' })
+      setTimeout(() => store.setActiveTask(null), 2000)
 
       const job: JobEntry = {
         id: Date.now().toString(),
@@ -457,7 +481,7 @@ export function ToolkitView() {
 
   return (
     <div style={{
-      height: '100%',
+      minHeight: '100%',
       padding: 'var(--s5) var(--s8)',
       display: 'flex', flexDirection: 'column', gap: 'var(--s4)',
     }}>
@@ -715,19 +739,35 @@ export function ToolkitView() {
                             </p>
                             <AnimatePresence>
                               {result && (
-                                <motion.p
+                                <motion.div
                                   initial={{ opacity: 0, height: 0 }}
                                   animate={{ opacity: 1, height: 'auto' }}
                                   exit={{ opacity: 0, height: 0 }}
                                   transition={{ duration: 0.2 }}
-                                  style={{
+                                  style={{ overflow: 'hidden' }}
+                                >
+                                  <p style={{
                                     fontSize: 11, margin: '4px 0 0',
                                     color: result.status === 'success' ? 'var(--success)' : result.status === 'error' ? 'var(--danger)' : 'var(--accent)',
                                     fontFamily: 'var(--font-mono)',
-                                  }}
-                                >
-                                  {result.message}
-                                </motion.p>
+                                  }}>
+                                    {result.message}
+                                  </p>
+                                  {result.output && (
+                                    <pre style={{
+                                      marginTop: 4, padding: '6px 8px',
+                                      background: 'rgba(0,0,0,0.2)',
+                                      borderRadius: 'var(--r1)',
+                                      fontSize: 10, fontFamily: 'var(--font-mono)',
+                                      color: 'var(--text-secondary)',
+                                      maxHeight: 150, overflowY: 'auto',
+                                      whiteSpace: 'pre-wrap',
+                                      wordBreak: 'break-word',
+                                    }}>
+                                      {result.output}
+                                    </pre>
+                                  )}
+                                </motion.div>
                               )}
                             </AnimatePresence>
                           </div>

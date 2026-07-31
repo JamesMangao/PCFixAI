@@ -1,11 +1,16 @@
-import { relaunch } from '@tauri-apps/plugin-process'
+import { useState } from 'react'
+import { Loader2 } from 'lucide-react'
+import { relaunchElevated } from '../../hooks/useTauriEvents'
 
 export function PrivilegeBanner() {
+  const [loading, setLoading] = useState(false)
+
   async function handleRelaunch() {
+    setLoading(true)
     try {
-      await relaunch()
+      await relaunchElevated()
     } catch {
-      // Fallback: user must manually relaunch as admin
+      setLoading(false)
     }
   }
 
@@ -28,6 +33,7 @@ export function PrivilegeBanner() {
       </div>
       <button
         onClick={handleRelaunch}
+        disabled={loading}
         style={{
           padding: '4px 12px',
           background: 'transparent',
@@ -36,11 +42,13 @@ export function PrivilegeBanner() {
           color: 'var(--warning)',
           fontSize: 11,
           fontWeight: 600,
-          cursor: 'pointer',
+          cursor: loading ? 'not-allowed' : 'pointer',
           flexShrink: 0,
+          display: 'flex', alignItems: 'center', gap: 4,
         }}
       >
-        Relaunch as Admin
+        {loading && <Loader2 size={11} className="spin" />}
+        {loading ? 'Launching...' : 'Relaunch as Admin'}
       </button>
     </div>
   )

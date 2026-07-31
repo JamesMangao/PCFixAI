@@ -1,13 +1,15 @@
-
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../../store'
-import { Loader2, ShieldAlert } from 'lucide-react'
+import { Loader2, ShieldAlert, CheckCircle, XCircle } from 'lucide-react'
 
 export function GlobalProgressBar() {
-  const { scanPhase } = useStore()
-  
-  // Only show when not idle and not complete
-  const isVisible = scanPhase.phase !== 'idle' && scanPhase.phase !== 'complete'
+  const { scanPhase, activeTask } = useStore()
+
+  const isScanning = scanPhase.phase === 'starting' || scanPhase.phase === 'scanning' || scanPhase.phase === 'fixing'
+  const isVisible = isScanning || activeTask !== null
+
+  const isDone = activeTask?.status === 'done'
+  const isError = activeTask?.status === 'error'
 
   return (
     <AnimatePresence>
@@ -21,7 +23,7 @@ export function GlobalProgressBar() {
             position: 'absolute',
             bottom: 'var(--s6)',
             left: '50%',
-            transform: 'translateX(-50%)', // Centered horizontally
+            transform: 'translateX(-50%)',
             zIndex: 100,
             display: 'flex',
             flexDirection: 'column',
@@ -38,19 +40,33 @@ export function GlobalProgressBar() {
           {/* Header row */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--s4)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s2)' }}>
-              {scanPhase.phase === 'fixing' ? (
+              {isDone ? (
+                <CheckCircle size={16} color="var(--success)" />
+              ) : isError ? (
+                <XCircle size={16} color="var(--danger)" />
+              ) : scanPhase.phase === 'fixing' ? (
                 <ShieldAlert size={16} color="var(--warning)" />
               ) : (
                 <Loader2 size={16} color="var(--accent)" className="spin" />
               )}
               <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>
-                {scanPhase.phase === 'starting' && 'Initializing System Check...'}
-                {scanPhase.phase === 'scanning' && 'Scanning Diagnostics...'}
-                {scanPhase.phase === 'fixing' && 'Applying AI Fixes...'}
+                {isScanning ? (
+                  <>
+                    {scanPhase.phase === 'starting' && 'Initializing System Check...'}
+                    {scanPhase.phase === 'scanning' && 'Scanning Diagnostics...'}
+                    {scanPhase.phase === 'fixing' && 'Applying AI Fixes...'}
+                  </>
+                ) : activeTask ? (
+                  <>
+                    {activeTask.status === 'running' && activeTask.name}
+                    {isDone && <span style={{ color: 'var(--success)' }}>✓ Done</span>}
+                    {isError && <span style={{ color: 'var(--danger)' }}>✗ Failed</span>}
+                  </>
+                ) : null}
               </span>
             </div>
             <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-              {scanPhase.message}
+              {isScanning ? scanPhase.message : ''}
             </span>
           </div>
 
@@ -69,15 +85,15 @@ export function GlobalProgressBar() {
                 bottom: 0,
                 left: 0,
                 width: '30%',
-                background: scanPhase.phase === 'fixing' ? 'var(--warning)' : 'var(--accent)',
+                background: isDone ? 'var(--success)' : isError ? 'var(--danger)' : scanPhase.phase === 'fixing' ? 'var(--warning)' : 'var(--accent)',
                 borderRadius: 2,
               }}
               animate={{
                 x: ['-100%', '300%'],
               }}
               transition={{
-                duration: 1.5,
-                repeat: Infinity,
+                duration: isDone || isError ? 0 : 1.5,
+                repeat: isDone || isError ? 0 : Infinity,
                 ease: 'linear'
               }}
             />

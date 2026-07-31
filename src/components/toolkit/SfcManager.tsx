@@ -26,13 +26,13 @@ export function SfcManager() {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight
   }, [results])
 
-  async function checkAdminStatus() {
+async function checkAdminStatus() {
     try {
       const output = await runRawCommandOutput('powershell', [
         '-NoProfile', '-Command',
         '([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)'
       ])
-      if (!output.trim().includes('True')) {
+if (!output.output.trim().includes('True')) {
         setResults(prev => [...prev, '⚠️ Run as Administrator for best results. SFC/DISM require elevated privileges.'])
       }
     } catch { /* ok */ }

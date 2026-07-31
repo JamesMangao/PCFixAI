@@ -17,7 +17,7 @@ export function SpeedTest() {
   const [phase, setPhase] = useState<'idle' | 'ping' | 'download' | 'upload' | 'done'>('idle')
   const [error, setError] = useState<string | null>(null)
 
-  async function runSpeedTest() {
+async function runSpeedTest() {
     setTesting(true)
     setResult(null)
     setError(null)
@@ -31,7 +31,7 @@ export function SpeedTest() {
         '$ping = (Test-Connection -ComputerName 8.8.8.8 -Count 4 | Measure-Object -Property Latency -Average).Average; ' +
         'Write-Output $ping'
       ])
-      const pingMs = Math.round(parseFloat(pingOutput.trim()) || 0)
+      const pingMs = Math.round(parseFloat(pingOutput.output.trim()) || 0)
 
       // Download test - download a 10MB file from a known CDN
       setPhase('download')
@@ -53,7 +53,7 @@ export function SpeedTest() {
         '  Write-Output "0" ' +
         '}'
       ])
-      const downloadMbps = parseFloat(dlOutput.trim()) || 0
+      const downloadMbps = parseFloat(dlOutput.output.trim()) || 0
 
       // Upload test - upload a small payload
       setPhase('upload')
@@ -73,7 +73,7 @@ export function SpeedTest() {
         '  Write-Output "0" ' +
         '}'
       ])
-      const uploadMbps = parseFloat(ulOutput.trim()) || 0
+      const uploadMbps = parseFloat(ulOutput.output.trim()) || 0
 
       setPhase('done')
       const speedResult: SpeedResult = {
@@ -87,7 +87,7 @@ export function SpeedTest() {
       logJob('Speed Test', `Download: ${downloadMbps} Mbps, Upload: ${uploadMbps} Mbps, Ping: ${pingMs}ms`, 'success')
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
-      logJob('Speed Test', 'Speed test failed', 'failed')
+logJob('Speed Test', 'Speed test failed', 'failed')
     } finally {
       setTesting(false)
     }

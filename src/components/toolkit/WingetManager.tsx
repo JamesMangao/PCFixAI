@@ -38,7 +38,7 @@ export function WingetManager() {
         '-NoProfile', '-Command',
         'try { $v = winget --version; Write-Output "OK:$v" } catch { Write-Output "NOT_FOUND" }'
       ])
-      if (output.includes('OK:')) {
+      if (output.output.includes('OK:')) {
         setInstalled(true)
         await listUpgrades()
       } else {
@@ -79,7 +79,7 @@ export function WingetManager() {
       const output = await runRawCommandOutput('winget', [
         'upgrade', '--accept-source-agreements'
       ])
-      const lines = output.split('\n')
+      const lines = output.output.split('\n')
       const parsed: WingetPackage[] = []
 
       for (const line of lines) {
@@ -100,7 +100,7 @@ export function WingetManager() {
       }
 
       setPackages(parsed)
-      if (parsed.length === 0 && output.includes('upgrades available')) {
+      if (parsed.length === 0 && output.output.includes('upgrades available')) {
         setLog(prev => [...prev, 'All packages are up to date'])
       }
     } catch (e) {
