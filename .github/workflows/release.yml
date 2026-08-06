@@ -1,0 +1,64 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    permissions:
+      contents: write
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install frontend deps
+        run: npm ci
+
+      - name: build and publish
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: v__VERSION__
+          releaseName: 'PCFixAI v__VERSION__'
+          releaseBody: |
+          ## PCFixAI v1.3.0
+
+          ### What's New
+
+          - **Enhanced AI Integration** — Improved Ollama AI integration with better model handling and response streaming
+          - **UI Component Enhancements** — Additional animations, smoother transitions, and refined visual feedback
+          - **Updated Tauri Backend** — Latest Tauri version with improved stability and performance
+
+          ### Improvements
+
+          - **Performance Optimizations** — Faster startup time and reduced memory usage
+          - **Stability Fixes** — Resolved various edge cases in scan and repair workflows
+          - **UI Refinements** — Enhanced component rendering and animation performance
+
+          ### Downloads
+
+          - `PCFixAI-Setup-1.3.0-x64.nsis.exe` — Signed Windows installer
+
+          See the assets to download and install this version.
+          releaseDraft: true
+          prerelease: false
+          includeUpdaterJson: true
