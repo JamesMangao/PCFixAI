@@ -6,7 +6,23 @@ PCFixAI is a desktop application that diagnoses and fixes common Windows issues 
 
 ---
 
-## Latest Update — v1.2.0 (June 2026)
+## Latest Update — v1.3.0 (August 2026)
+
+### New Features
+
+- **Enhanced AI Integration** — Improved Ollama AI integration with better model handling and response streaming
+- **UI Component Enhancements** — Additional animations, smoother transitions, and refined visual feedback
+- **Updated Tauri Backend** — Latest Tauri version with improved stability and performance
+
+### Improvements
+
+- **Performance Optimizations** — Faster startup time and reduced memory usage
+- **Stability Fixes** — Resolved various edge cases in scan and repair workflows
+- **UI Refinements** — Enhanced component rendering and animation performance
+
+---
+
+## Previous Update — v1.2.0 (June 2026)
 
 ### New Features
 
