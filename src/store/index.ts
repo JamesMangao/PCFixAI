@@ -114,7 +114,19 @@ interface PCFixAIStore {
   activeTask: { name: string; status: 'running' | 'done' | 'error' } | null
   setActiveTask: (task: { name: string; status: 'running' | 'done' | 'error' } | null) => void
 
+  updater: UpdaterState
+  setUpdater: (s: Partial<UpdaterState>) => void
+
   _hydrated: boolean
+}
+
+export interface UpdaterState {
+  status: 'idle' | 'checking' | 'up_to_date' | 'available' | 'downloading' | 'ready_to_restart' | 'error'
+  version: string | null
+  currentVersion: string | null
+  body: string | null
+  progress: number
+  error: string | null
 }
 
 const WELCOME_MESSAGE: ChatMessage = {
@@ -201,6 +213,9 @@ export const useStore = create<PCFixAIStore>()(
 
       activeTask: null,
       setActiveTask: (activeTask) => set({ activeTask }),
+
+      updater: { status: 'idle', version: null, currentVersion: null, body: null, progress: 0, error: null },
+      setUpdater: (patch) => set((s) => ({ updater: { ...s.updater, ...patch } })),
 
       _hydrated: false,
     }),

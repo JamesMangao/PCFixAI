@@ -254,7 +254,7 @@ async function handleFixInternet(): Promise<string> {
     sections.push('⚠️ TCP/IP reset failed')
   }
 
-  sections.push('\n🔄 **You may need to restart your PC for all changes to take effect.**')
+  sections.push('\n🔄 **You may need to restart your PC for network changes to take full effect.**\n\n💡 **Tip:** If issues persist after restart, use the Toolkit → Network & Wi-Fi Fixer for more advanced troubleshooting.')
 
   return sections.join('\n')
 }

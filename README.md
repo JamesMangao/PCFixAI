@@ -6,7 +6,59 @@ PCFixAI is a desktop application that diagnoses and fixes common Windows issues 
 
 ---
 
-## Latest Update — v1.3.0 (August 2026)
+## Latest Update — v1.4.0 (August 2026)
+
+### Built-in Auto-Updater
+
+- **Background Update Checks** — Periodic checks for new releases via Tauri updater plugin (every 4 hours + 4s on startup)
+- **In-App Update Banner** — Download, install, or skip updates without leaving the app; expandable release notes
+- **Download Progress** — Real-time progress bar during download with percentage display
+- **Auto-Restart** — Seamless restart after update installation
+- **Skip per Version** — Skip a specific version without dismissing the updater entirely
+
+### Premium UI Refresh
+
+- **Glassmorphism Design System** — Complete redesign with deep-space backgrounds, glass-effect panels, refined gradients, and multi-layered shadows
+- **Premium Title Bar** — Custom SVG window buttons (minimize/maximize/restore/close) with hover glow effects, gradient brand text, and top-edge accent line
+- **Refined Sidebar** — Gradient brand header, glow-active navigation indicators, right-edge accent glow, cleaner spacing
+- **Premium Chat Interface** — Glass-effect chat container, asymmetric gradient bubbles, animated typing dots, gradient send button with inset highlights
+- **Premium Dashboard** — Metric cards with hover-responsive borders, status-colored glow dots, layered health header decorations
+- **Polished Settings** — Spring-animated toggles with glow, focus-highlighted inputs, status indicator dots
+- **Premium Modals** — AdminPrompt and UpdateNotes with top gradient accent lines, frosted glass backdrops, refined button shadows
+- **New Animations** — `float`, `borderGlow`, `subtlePulse` keyframes, smoother scrollbars, premium selection highlight
+
+### Windows 10 & 11 Compatibility
+
+- **Windows Version Detection** — New Rust backend command detects Windows 10 vs Windows 11 (build 22000+) via WMI
+- **Windows 11 24H2+ Fallbacks** — Troubleshooter actions gracefully open modern Settings pages when `msdt.exe` is unavailable
+- **Windows 10 Winget Handling** — Improved detection and installation guidance for winget on Windows 10 (not pre-installed)
+- **Enhanced WMI Queries** — Better error handling for older Windows 10 builds where some WMI classes may not be available
+- **Expanded Browser Cleanup** — Cache sweep now covers Brave, Vivaldi, Opera, and Service Worker CacheStorage directories
+
+### Ollama Connection Improvements
+
+- **Connection Quality Monitoring** — Periodic latency checks with millisecond display
+- **Model Verification** — Queries Ollama's `/api/tags` to verify the configured model is loaded and ready
+- **Auto-Recovery Detection** — If Ollama stops running, the banner reappears automatically
+- **Status Badge** — AI Connected / Rule-based indicator in the chat header
+
+### Bug Fixes
+
+- **Fixed `cfg` gate control flow** — Proper `#[cfg(not(target_os = "windows"))]` blocks in `fix_network`, `fix_os`, `fix_security`, and `run_escalation` prevent unreachable code warnings
+- **Live Metrics Real Data** — LiveMetrics panel now uses actual backend metrics instead of random simulation
+- **Window Maximize Button** — Title bar now includes a functional maximize/restore toggle
+- **Defensive WMI Queries** — Disk health, RAM calculation, disk I/O, and network counters use `SilentlyContinue` to avoid crashes on older Windows 10 builds
+- **Network Fix Escalation** — Winsock/TCP/IP reset now emits agent-step event for status visibility
+- **Deep Performance Escalation** — Escalation now performs thorough browser cache cleanup across Chrome, Firefox, Edge, Brave, Vivaldi, and Opera
+
+### What's New Modal
+
+- **Update Notes on Launch** — First launch after updating shows a "What's New" modal with categorized release notes
+- **Version-Persisted Dismissal** — Modal only shows once per version, tracked in localStorage
+
+---
+
+## Previous Update — v1.3.0
 
 ### New Features
 
@@ -22,7 +74,7 @@ PCFixAI is a desktop application that diagnoses and fixes common Windows issues 
 
 ---
 
-## Previous Update — v1.2.0 (June 2026)
+## Previous Update — v1.2.0
 
 ### New Features
 
@@ -55,11 +107,10 @@ PCFixAI is a desktop application that diagnoses and fixes common Windows issues 
 - **Restore Points** — Every scan creates a Windows System Restore point; all changes are reversible
 - **Job History** — Full audit trail of every action with exit codes and status
 - **Privilege Detection** — Automatically detects admin elevation and warns when deep fixes are restricted
-- **Toolkit** — 12 system tools across 12 tabs:
-  - Performance, Hardware, Cleanup, Troubleshooting, Advanced, Drivers
-  - External Tools (internet-required, with security warnings)
+- **Toolkit** — 30+ system tools across 8 interactive manager tabs:
   - Startup Programs, Running Processes, System Services, Installed Apps
   - App Updates (Winget), SFC/DISM, Speed Test, Driver Backup
+  - Performance, Hardware, Cleanup, Troubleshooting, Advanced, Drivers, External Tools
 
 ---
 
@@ -70,7 +121,7 @@ Most features work offline. These require an internet connection:
 | Feature | What it downloads | Why |
 |---------|------------------|-----|
 | Speed Test | Test files from speedtest.tele2.net | Measures real throughput |
-| Winget Install | Winget installer from GitHub | Not bundled with Windows |
+| Winget Install | Winget installer from GitHub | Not bundled with Windows 10 |
 | Winget Updates | Package updates from winget sources | Updates come from vendors |
 | Auto Update Drivers | PSWindowsUpdate module from PowerShell Gallery | Module not bundled |
 | External Power Tools | MAS, WinUtil, WinScript, Winhance scripts | Third-party tools (see warning below) |
@@ -81,19 +132,6 @@ Most features work offline. These require an internet connection:
 The "External Power Tools" category (MAS, WinUtil, WinScript, Winhance) downloads and executes remote scripts with full system access. These are third-party projects not affiliated with PCFixAI. Verify the source before running.
 
 ---
-
-## Screenshots
-
->**Dashboard**
-![Dashboard](assets/dashboard.png)
----
-
->**Toolkit**
-![Toolkit](assets/toolkit.png)
----
-
->**Assistant**
-![Assistant](assets/assistant.png)
 
 ## Tech Stack
 
@@ -117,7 +155,7 @@ The "External Power Tools" category (MAS, WinUtil, WinScript, Winhance) download
 
 - **Rust** (via [rustup](https://rustup.rs/))
 - **Node.js** (v18+ LTS, via [nodejs.org](https://nodejs.org/))
-- **Windows 10/11**
+- **Windows 10 or Windows 11**
 
 ### Setup
 
@@ -150,17 +188,18 @@ npm run tauri:build
 ## Usage
 
 1. **Launch** the app — UAC will prompt for admin privileges (recommended for full functionality)
-2. **Dashboard** — View system health, live metrics, AI predictions, and run a scan
-3. **Assistant** — Chat with the AI or use quick-action buttons:
+2. **What's New** — On first launch after an update, review the release notes
+3. **Dashboard** — View system health, live metrics, AI predictions, and run a scan
+4. **Assistant** — Chat with the AI or use quick-action buttons:
    - `One Click Diagnose` — Full system scan
    - `Speed up my startup` — Clean temp files, audit startup programs
    - `Fix my internet` — Flush DNS, reset Winsock/TCP/IP
    - `Boost my PC` — Clean caches, activate High Performance power plan
    - `Clean up disk space` — Remove temp files and browser caches
-   - `Show my system specs` — Display OS, CPU, RAM, architecture info
-4. **Toolkit** — Browse 30+ system tools across 12 tabs; interactive managers for startup programs, running processes, services, installed apps, winget updates, SFC/DISM, speed test, and driver backup
-5. **History** — View all past jobs with stats (total ops, success rate, timestamps)
-6. **Settings** — Adjust preferences (persisted across restarts)
+   - `Show my system specs` — Display OS, CPU, RAM, GPU, architecture info
+5. **Toolkit** — Browse 30+ system tools across 8 interactive manager tabs
+6. **History** — View all past jobs with stats (total ops, success rate, timestamps)
+7. **Settings** — Adjust preferences (persisted across restarts)
 
 ### Optional: AI-Powered Chat
 
@@ -174,7 +213,7 @@ winget install Ollama.Ollama
 ollama pull llama3.2:3b
 ```
 
-PCFixAI auto-detects Ollama and prompts for installation if not found.
+PCFixAI auto-detects Ollama and shows connection quality (latency, model readiness).
 
 ---
 
@@ -212,7 +251,7 @@ Rust backend:
 Agent loop auto-fixes each finding:
   - Network issues → ipconfig /flushdns
   - Temp files → Clear-RecycleBin + Remove-Item $env:TEMP\*
-  - Browser caches → Chrome/Firefox/Edge/Brave cache sweep
+  - Browser caches → Chrome/Firefox/Edge/Brave/Vivaldi/Opera cache sweep
   - OS corruption → DISM /RestoreHealth + sfc /scannow
         │
         ▼
@@ -230,9 +269,10 @@ PCFixAI/
 │   ├── components/
 │   │   ├── chat/       # ChatInterface with animated messages
 │   │   ├── dashboard/  # Dashboard, Settings, History, Findings
-│   │   ├── toolkit/    # 12 tool categories + 8 interactive managers
-│   │   └── shared/     # Sidebar, TitleBar
-│   ├── hooks/          # useLocalAI, useTauriEvents
+│   │   ├── toolkit/    # 8 tool categories + 8 interactive managers
+│   │   ├── panel/      # LiveMetrics, ConsoleLog, AutomationTree, StateLog
+│   │   └── shared/     # Sidebar, TitleBar, AdminPrompt, UpdateNotes, Banners
+│   ├── hooks/          # useLocalAI, useTauriEvents, useUpdater
 │   ├── store/          # Zustand state management
 │   └── styles/         # globals.css design tokens
 ├── ARCHITECTURE.md     # Full system design document

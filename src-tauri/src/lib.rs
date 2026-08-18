@@ -252,11 +252,11 @@ async fn check_disk_health(app: &AppHandle) -> Vec<Finding> {
     let result = run_command_streaming(
         app,
         &id,
-        "powershell",
-        &[
-            "-NonInteractive", "-NoProfile", "-Command",
-            "Get-PhysicalDisk | Select-Object FriendlyName,HealthStatus,OperationalStatus | ConvertTo-Json",
-        ],
+         "powershell",
+         &[
+             "-NonInteractive", "-NoProfile", "-Command",
+             "Get-PhysicalDisk -ErrorAction SilentlyContinue | Select-Object FriendlyName,HealthStatus,OperationalStatus | ConvertTo-Json",
+         ],
     ).await;
 
     #[cfg(not(target_os = "windows"))]
@@ -614,14 +614,18 @@ async fn fix_network(app: &AppHandle, _finding: &Finding) -> (bool, String) {
     let id = Uuid::new_v4().to_string();
 
     #[cfg(target_os = "windows")]
-    let (code, lines) = run_command_streaming(app, &id, "ipconfig", &["/flushdns"])
-        .await
-        .unwrap_or((-1, vec![]));
+    {
+        let (code, lines) = run_command_streaming(app, &id, "ipconfig", &["/flushdns"])
+            .await
+            .unwrap_or((-1, vec![]));
+        return (code == 0, lines.join("\n"));
+    }
 
     #[cfg(not(target_os = "windows"))]
-    let (code, lines) = (0i32, vec![]);
-
-    (code == 0, lines.join("\n"))
+    {
+        let _ = id;
+        (true, String::new())
+    }
 }
 
 async fn fix_performance(app: &AppHandle, finding: &Finding) -> (bool, String) {
@@ -712,7 +716,10 @@ async fn fix_os(app: &AppHandle, _finding: &Finding) -> (bool, String) {
         return (dism_code == 0, dism_out.join("\n"));
     }
     #[cfg(not(target_os = "windows"))]
-    (true, String::new())
+    {
+        let _ = id;
+        (true, String::new())
+    }
 }
 
 async fn fix_security(app: &AppHandle, _finding: &Finding) -> (bool, String) {
@@ -744,30 +751,65 @@ async fn fix_security(app: &AppHandle, _finding: &Finding) -> (bool, String) {
 }
 
 async fn run_escalation(app: &AppHandle, finding: &Finding) {
-    let id = Uuid::new_v4().to_string();
-
     #[cfg(target_os = "windows")]
-    match finding.category.as_str() {
-        "Network" => {
-            let _ = run_command_streaming(app, &id, "netsh", &["winsock", "reset"]).await;
-            let _ = run_command_streaming(
-                app,
-                &Uuid::new_v4().to_string(),
-                "netsh",
-                &["int", "ip", "reset"],
-            )
-            .await;
+    {
+        let id = Uuid::new_v4().to_string();
+        match finding.category.as_str() {
+            "Network" => {
+                let _ = run_command_streaming(app, &id, "netsh", &["winsock", "reset"]).await;
+                let _ = run_command_streaming(
+                    app,
+                    &Uuid::new_v4().to_string(),
+                    "netsh",
+                    &["int", "ip", "reset"],
+                )
+                .await;
+                let _ = app.emit(
+                    "agent-step",
+                    AgentStepEvent {
+                        step_name: "Network Reset Complete".into(),
+                        status: "done".into(),
+                        message: "Winsock and TCP/IP reset. A restart is recommended for changes to take full effect.".into(),
+                        timestamp: Utc::now().to_rfc3339(),
+                    },
+                );
+            }
+            "Performance" => {
+                // Deep performance cleanup for escalation
+                let cleanup_script = r#"
+                    Clear-RecycleBin -Force -ErrorAction SilentlyContinue
+                    Remove-Item -Path "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
+                    Remove-Item -Path "$env:WINDIR\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
+                    # Clear browser caches as escalation
+                    @('Chrome','Firefox','Edge','Brave','BraveBrowser','Vivaldi','Opera') | ForEach-Object {
+                        $p = "$env:LOCALAPPDATA\$_\User Data\Default\Cache"
+                        if (Test-Path $p) { Remove-Item "$p\*" -Recurse -Force -EA SilentlyContinue }
+                    }
+                    Write-Output "Deep cleanup complete"
+                "#;
+                let _ = run_command_streaming(
+                    app,
+                    &Uuid::new_v4().to_string(),
+                    "powershell",
+                    &["-NonInteractive", "-NoProfile", "-Command", cleanup_script],
+                )
+                .await;
+            }
+            "OS" => {
+                let _ = run_command_streaming(
+                    app,
+                    &id,
+                    "dism",
+                    &["/Online", "/Cleanup-Image", "/StartComponentCleanup"],
+                )
+                .await;
+            }
+            _ => {}
         }
-        "OS" => {
-            let _ = run_command_streaming(
-                app,
-                &id,
-                "dism",
-                &["/Online", "/Cleanup-Image", "/StartComponentCleanup"],
-            )
-            .await;
-        }
-        _ => {}
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        let _ = (app, finding);
     }
 }
 
@@ -783,11 +825,48 @@ async fn check_privileges() -> Result<bool, String> {
 #[tauri::command]
 async fn get_system_info() -> Result<serde_json::Value, String> {
     #[cfg(target_os = "windows")]
-    return Ok(serde_json::json!({ "platform": "windows", "arch": std::env::consts::ARCH }));
+    {
+        let os_version = get_windows_version_string().await;
+        return Ok(serde_json::json!({
+            "platform": "windows",
+            "arch": std::env::consts::ARCH,
+            "osVersion": os_version,
+        }));
+    }
     #[cfg(target_os = "macos")]
     return Ok(serde_json::json!({ "platform": "macos", "arch": std::env::consts::ARCH }));
     #[cfg(target_os = "linux")]
     return Ok(serde_json::json!({ "platform": "linux", "arch": std::env::consts::ARCH }));
+}
+
+/// Returns a human-readable Windows version string (e.g. "Windows 10 22H2" or "Windows 11 23H2")
+#[cfg(target_os = "windows")]
+async fn get_windows_version_string() -> String {
+    let script = r#"
+$os = Get-CimInstance Win32_OperatingSystem -ErrorAction SilentlyContinue
+if ($os) {
+    $build = $os.BuildNumber
+    if ([int]$build -ge 22000) {
+        Write-Output "Windows 11 (Build $build)"
+    } else {
+        Write-Output "Windows 10 (Build $build)"
+    }
+} else {
+    Write-Output "Unknown Windows"
+}
+    "#;
+    // Use std::process::Command directly since we don't need streaming here
+    if let Ok(output) = std::process::Command::new("powershell")
+        .args(["-NoProfile", "-Command", script])
+        .output()
+    {
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let version = stdout.trim().to_string();
+        if !version.is_empty() {
+            return version;
+        }
+    }
+    "Unknown Windows".to_string()
 }
 
 #[tauri::command]
@@ -986,10 +1065,13 @@ $os = Get-CimInstance Win32_OperatingSystem
 $totalRam = [math]::Round($os.TotalVisibleMemorySize / 1MB, 2)
 $freeRam = [math]::Round($os.FreePhysicalMemory / 1MB, 2)
 $usedRam = [math]::Round($totalRam - $freeRam, 2)
-$ramPct = [math]::Round(($usedRam / $totalRam) * 100, 0)
-$disk = (Get-CimInstance Win32_PerfFormattedData_PerfDisk_PhysicalDisk | Where-Object {$_.Name -eq '_Total'}).PercentDiskTime
-$net = (Get-CimInstance Win32_PerfFormattedData_Tcpip_NetworkInterface | Measure-Object -Property BytesTotalPersec -Sum).Sum / 1KB
+$ramPct = if ($totalRam -gt 0) { [math]::Round(($usedRam / $totalRam) * 100, 0) } else { 0 }
+$disk = (Get-CimInstance Win32_PerfFormattedData_PerfDisk_PhysicalDisk -ErrorAction SilentlyContinue | Where-Object {$_.Name -eq '_Total'}).PercentDiskTime
+$netCounters = Get-CimInstance Win32_PerfFormattedData_Tcpip_NetworkInterface -ErrorAction SilentlyContinue | Measure-Object -Property BytesTotalPersec -Sum
+$net = if ($netCounters) { $netCounters.Sum / 1KB } else { 0 }
 $netPct = [math]::Min([math]::Round($net / 100, 0), 100)
+if (-not $cpu) { $cpu = 0 }
+if (-not $disk) { $disk = 0 }
 Write-Output "CPU:$([math]::Round($cpu,0))"
 Write-Output "RAM:$ramPct"
 Write-Output "DISK:$([math]::Round($disk,0))"

@@ -32,119 +32,137 @@ export function ChatInterface() {
 
   const quickActions = [
     { label: 'One Click Diagnose', icon: Activity, onClick: () => sendQuickAction('One Click Diagnose', 'diagnose') },
-    { label: 'Show my system specs', icon: Cpu, onClick: () => sendQuickAction('Show my system specs') },
-    { label: 'Speed up my startup', icon: Zap, onClick: () => sendQuickAction('Speed up my startup') },
+    { label: 'Show system specs', icon: Cpu, onClick: () => sendQuickAction('Show my system specs') },
+    { label: 'Speed up startup', icon: Zap, onClick: () => sendQuickAction('Speed up my startup') },
     { label: 'Fix my internet', icon: Wifi, onClick: () => sendQuickAction('Fix my internet') },
     { label: 'Boost my PC', icon: ArrowUpCircle, onClick: () => sendQuickAction('Boost my PC') },
-    { label: 'Clean up disk space', icon: HardDrive, onClick: () => sendQuickAction('Clean up disk space') },
+    { label: 'Clean up disk', icon: HardDrive, onClick: () => sendQuickAction('Clean up disk space') },
   ]
 
   return (
     <div style={{
       display: 'flex', flexDirection: 'column',
-      padding: 'var(--s8) var(--s8) var(--s6)',
-      maxWidth: 1000, margin: '0 auto', width: '100%',
+      padding: '28px 32px 24px',
+      maxWidth: 960, margin: '0 auto', width: '100%',
       minHeight: 400,
     }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--s6)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s3)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{
-            width: 40, height: 40, borderRadius: 10,
-            background: 'linear-gradient(135deg, #00d4ff, #0099cc)',
+            width: 42, height: 42, borderRadius: 12,
+            background: 'linear-gradient(135deg, #00d4ff, #0088cc)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 2px 12px rgba(0,212,255,0.3)',
+            boxShadow: '0 4px 16px rgba(0,212,255,0.25), inset 0 1px 0 rgba(255,255,255,0.15)',
           }}>
-            <Bot size={24} color="white" />
+            <Bot size={22} color="white" strokeWidth={1.8} />
           </div>
           <div>
-            <h2 style={{ fontSize: 20, margin: 0, fontWeight: 600 }}>PCFixAI <span style={{
-              fontSize: 12,
-              color: ollamaStatus === 'ready' ? 'var(--success)' : 'var(--text-muted)',
-              fontWeight: 500
+            <h2 style={{
+              fontSize: 20, margin: 0, fontWeight: 700,
+              background: 'linear-gradient(135deg, #ffffff, #c0d0e4)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             }}>
-              {ollamaStatus === 'ready' ? '• AI Connected' :
-               ollamaStatus === 'checking' ? '• Checking...' :
-               '• Rule-based'}
-            </span></h2>
-            <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+              PCFixAI
+            </h2>
+            <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
               {ollamaStatus === 'ready' ? 'AI-powered via Ollama' : 'Offline PC Repair'}
             </span>
+          </div>
+          <div style={{
+            padding: '3px 10px', borderRadius: 'var(--r-full)',
+            background: ollamaStatus === 'ready' ? 'rgba(52,211,153,0.1)' : 'rgba(255,255,255,0.04)',
+            border: `1px solid ${ollamaStatus === 'ready' ? 'rgba(52,211,153,0.25)' : 'var(--border-dim)'}`,
+            fontSize: 10, fontWeight: 600,
+            color: ollamaStatus === 'ready' ? '#34d399' : 'var(--text-muted)',
+            display: 'flex', alignItems: 'center', gap: 5,
+          }}>
+            <div style={{
+              width: 5, height: 5, borderRadius: '50%',
+              background: ollamaStatus === 'ready' ? '#34d399' : 'var(--text-muted)',
+              boxShadow: ollamaStatus === 'ready' ? '0 0 6px rgba(52,211,153,0.5)' : 'none',
+            }} />
+            {ollamaStatus === 'ready' ? 'AI Connected' : 'Rule-based'}
           </div>
         </div>
         {chatMessages.length > 1 && (
           <button
             onClick={() => { if (window.confirm('Clear all chat messages?')) clearChat() }}
             style={{
-              display: 'flex', alignItems: 'center', gap: 'var(--s2)',
-              padding: '6px 12px', background: 'transparent',
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '6px 14px', background: 'transparent',
               border: '1px solid var(--border-mid)', borderRadius: 'var(--r2)',
-              color: 'var(--text-secondary)', fontSize: 12, fontWeight: 500,
+              color: 'var(--text-muted)', fontSize: 11, fontWeight: 500,
               cursor: 'pointer', transition: 'all var(--transition-fast)',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--danger)'; e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.background = 'rgba(255,82,82,0.08)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-mid)'; e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'transparent' }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(248,113,113,0.35)'; e.currentTarget.style.color = '#f87171' }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-mid)'; e.currentTarget.style.color = 'var(--text-muted)' }}
           >
-            <Trash2 size={13} />
-            Clear Chat
+            <Trash2 size={12} />
+            Clear
           </button>
         )}
       </div>
 
       {/* Chat Feed */}
       <div ref={feedRef} style={{
-        flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 'var(--s4)',
-        padding: 'var(--s4)', background: 'var(--bg-elevated)', borderRadius: 'var(--r3)',
-        border: '1px solid var(--border-dim)'
+        flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16,
+        padding: 16,
+        background: 'rgba(11, 17, 32, 0.5)',
+        backdropFilter: 'blur(12px)',
+        borderRadius: 'var(--r3)',
+        border: '1px solid var(--border-dim)',
       }}>
         <AnimatePresence initial={false}>
           {chatMessages.map(msg => (
             <motion.div
               key={msg.id}
-              initial={{ opacity: 0, y: 12, scale: 0.97 }}
+              initial={{ opacity: 0, y: 10, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
               style={{
-                display: 'flex', gap: 'var(--s3)',
+                display: 'flex', gap: 10,
                 alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
                 maxWidth: '85%'
               }}
             >
               {msg.role === 'assistant' && (
                 <div style={{
-                  width: 32, height: 32, borderRadius: 8,
-                  background: 'var(--accent-dim)',
+                  width: 30, height: 30, borderRadius: 9,
+                  background: 'linear-gradient(135deg, rgba(0,212,255,0.12), rgba(0,212,255,0.06))',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  border: '1px solid rgba(0,212,255,0.15)',
+                  border: '1px solid rgba(0,212,255,0.12)',
                 }}>
-                  <Bot size={18} color="var(--accent)" />
+                  <Bot size={16} color="var(--accent)" strokeWidth={1.8} />
                 </div>
               )}
-              
+
               <div style={{
                 background: msg.role === 'user'
-                  ? 'linear-gradient(135deg, #00d4ff, #00b8d9)'
-                  : 'var(--bg-surface)',
-                color: msg.role === 'user' ? 'var(--bg-void)' : 'var(--text-primary)',
-                padding: 'var(--s3) var(--s4)',
-                borderRadius: msg.role === 'user' ? 'var(--r3) var(--r3) var(--r1) var(--r3)' : 'var(--r3) var(--r3) var(--r3) var(--r1)',
-                fontSize: 14, lineHeight: 1.6,
-                border: msg.role === 'user' ? 'none' : '1px solid var(--border-mid)',
+                  ? 'linear-gradient(135deg, #00d4ff, #0088cc)'
+                  : 'var(--bg-elevated)',
+                color: msg.role === 'user' ? 'white' : 'var(--text-primary)',
+                padding: '10px 16px',
+                borderRadius: msg.role === 'user'
+                  ? '14px 14px 4px 14px'
+                  : '14px 14px 14px 4px',
+                fontSize: 13, lineHeight: 1.65,
+                border: msg.role === 'user' ? 'none' : '1px solid var(--border-dim)',
                 whiteSpace: 'pre-wrap',
                 boxShadow: msg.role === 'user'
-                  ? '0 2px 8px rgba(0,212,255,0.2)'
-                  : 'var(--shadow-sm)',
+                  ? '0 2px 12px rgba(0,212,255,0.2), inset 0 1px 0 rgba(255,255,255,0.12)'
+                  : 'var(--shadow-xs)',
               }}>
                 {msg.content}
               </div>
 
               {msg.role === 'user' && (
                 <div style={{
-                  width: 32, height: 32, borderRadius: 8,
+                  width: 30, height: 30, borderRadius: 9,
                   background: 'var(--bg-surface)', border: '1px solid var(--border-mid)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                 }}>
-                  <User size={18} color="var(--text-secondary)" />
+                  <User size={16} color="var(--text-secondary)" strokeWidth={1.8} />
                 </div>
               )}
             </motion.div>
@@ -155,31 +173,29 @@ export function ChatInterface() {
         <AnimatePresence>
           {isGenerating && (
             <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              style={{
-                display: 'flex', gap: 'var(--s3)', alignSelf: 'flex-start', maxWidth: '85%'
-              }}
+              initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+              style={{ display: 'flex', gap: 10, alignSelf: 'flex-start', maxWidth: '85%' }}
             >
               <div style={{
-                width: 32, height: 32, borderRadius: 8,
-                background: 'var(--accent-dim)',
+                width: 30, height: 30, borderRadius: 9,
+                background: 'linear-gradient(135deg, rgba(0,212,255,0.12), rgba(0,212,255,0.06))',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                border: '1px solid rgba(0,212,255,0.15)',
+                border: '1px solid rgba(0,212,255,0.12)',
               }}>
-                <Bot size={18} color="var(--accent)" />
+                <Bot size={16} color="var(--accent)" strokeWidth={1.8} />
               </div>
               <div style={{
-                background: 'var(--bg-surface)',
-                border: '1px solid var(--border-mid)',
-                borderRadius: 'var(--r3) var(--r3) var(--r3) var(--r1)',
-                padding: '12px 16px',
-                display: 'flex', alignItems: 'center', gap: 6,
+                background: 'var(--bg-elevated)', border: '1px solid var(--border-dim)',
+                borderRadius: '14px 14px 14px 4px',
+                padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 5,
               }}>
-                <div style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)', animation: 'pulse 1.4s ease-in-out infinite' }} />
-                <div style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)', animation: 'pulse 1.4s ease-in-out infinite 0.2s' }} />
-                <div style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)', animation: 'pulse 1.4s ease-in-out infinite 0.4s' }} />
+                {[0, 1, 2].map(i => (
+                  <div key={i} style={{
+                    width: 6, height: 6, borderRadius: '50%',
+                    background: 'var(--accent)', opacity: 0.6,
+                    animation: `pulse 1.4s ease-in-out infinite ${i * 0.2}s`,
+                  }} />
+                ))}
               </div>
             </motion.div>
           )}
@@ -187,34 +203,33 @@ export function ChatInterface() {
       </div>
 
       {/* Quick Actions */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--s2)', marginTop: 'var(--s6)' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 20 }}>
         {quickActions.map(action => {
           const Icon = action.icon
           return (
             <motion.button
               key={action.label}
               onClick={action.onClick}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
+              whileHover={{ scale: 1.03, y: -1 }} whileTap={{ scale: 0.97 }}
               style={{
-                display: 'flex', alignItems: 'center', gap: 'var(--s2)',
-                padding: '8px 16px', background: 'transparent',
-                border: '1px solid var(--border-mid)', borderRadius: 20,
-                color: 'var(--text-primary)', fontSize: 13,
+                display: 'flex', alignItems: 'center', gap: 7,
+                padding: '7px 16px', background: 'transparent',
+                border: '1px solid var(--border-mid)', borderRadius: 'var(--r-full)',
+                color: 'var(--text-secondary)', fontSize: 12,
                 cursor: 'pointer', transition: 'all var(--transition-fast)',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--accent)'
-                e.currentTarget.style.color = 'var(--accent)'
-                e.currentTarget.style.background = 'var(--accent-subtle)'
+                e.currentTarget.style.borderColor = 'rgba(0,212,255,0.3)'
+                e.currentTarget.style.color = '#00d4ff'
+                e.currentTarget.style.background = 'rgba(0,212,255,0.05)'
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = 'var(--border-mid)'
-                e.currentTarget.style.color = 'var(--text-primary)'
+                e.currentTarget.style.color = 'var(--text-secondary)'
                 e.currentTarget.style.background = 'transparent'
               }}
             >
-              <Icon size={16} />
+              <Icon size={14} strokeWidth={1.8} />
               {action.label}
             </motion.button>
           )
@@ -223,14 +238,18 @@ export function ChatInterface() {
 
       {/* Input */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 'var(--s3)', marginTop: 'var(--s4)',
-        background: 'var(--bg-elevated)',
-        border: inputFocused ? '1px solid var(--accent)' : '1px solid var(--border-mid)',
-        padding: 'var(--s2) var(--s3)', borderRadius: 'var(--r3)',
-        boxShadow: inputFocused ? '0 0 0 3px var(--accent-dim), 0 0 20px rgba(0,212,255,0.1)' : 'none',
-        transition: 'all var(--transition-fast)',
+        display: 'flex', alignItems: 'center', gap: 10, marginTop: 14,
+        background: inputFocused
+          ? 'rgba(0, 212, 255, 0.04)'
+          : 'rgba(255,255,255,0.02)',
+        border: inputFocused ? '1px solid rgba(0,212,255,0.25)' : '1px solid var(--border-mid)',
+        padding: '8px 10px 8px 16px', borderRadius: 'var(--r4)',
+        boxShadow: inputFocused
+          ? '0 0 0 3px rgba(0,212,255,0.06), 0 4px 24px rgba(0,0,0,0.2)'
+          : 'var(--shadow-xs)',
+        transition: 'all var(--transition-normal)',
       }}>
-        <input 
+        <input
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleSend()}
@@ -240,27 +259,30 @@ export function ChatInterface() {
           disabled={isGenerating}
           style={{
             flex: 1, background: 'transparent', border: 'none', outline: 'none',
-            color: 'var(--text-primary)', fontSize: 14, fontFamily: 'inherit'
+            color: 'var(--text-primary)', fontSize: 14, fontFamily: 'inherit',
           }}
         />
         <motion.button
           onClick={handleSend}
           disabled={isGenerating || !input.trim()}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
           style={{
-            width: 34, height: 34, borderRadius: '50%',
-            background: (isGenerating || !input.trim()) ? 'var(--accent-dim)' : 'linear-gradient(135deg, #00d4ff, #0099cc)',
+            width: 36, height: 36, borderRadius: '50%',
+            background: (isGenerating || !input.trim())
+              ? 'rgba(255,255,255,0.04)'
+              : 'linear-gradient(135deg, #00d4ff, #0088cc)',
             border: 'none',
-            color: (isGenerating || !input.trim()) ? 'var(--accent)' : 'white',
+            color: (isGenerating || !input.trim()) ? 'var(--text-muted)' : 'white',
             cursor: (isGenerating || !input.trim()) ? 'default' : 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             opacity: (isGenerating || !input.trim()) ? 0.5 : 1,
-            boxShadow: (isGenerating || !input.trim()) ? 'none' : '0 2px 8px rgba(0,212,255,0.3)',
+            boxShadow: (isGenerating || !input.trim())
+              ? 'none'
+              : '0 2px 10px rgba(0,212,255,0.25), inset 0 1px 0 rgba(255,255,255,0.15)',
             transition: 'all var(--transition-fast)',
           }}
         >
-          <ArrowUpCircle size={20} />
+          <ArrowUpCircle size={20} strokeWidth={1.8} />
         </motion.button>
       </div>
     </div>

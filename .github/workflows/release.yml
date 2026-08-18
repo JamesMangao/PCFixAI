@@ -40,23 +40,25 @@ jobs:
           tagName: v__VERSION__
           releaseName: 'PCFixAI v__VERSION__'
           releaseBody: |
-          ## PCFixAI v1.3.0
+          ## PCFixAI v1.4.0
 
           ### What's New
 
-          - **Enhanced AI Integration** — Improved Ollama AI integration with better model handling and response streaming
-          - **UI Component Enhancements** — Additional animations, smoother transitions, and refined visual feedback
-          - **Updated Tauri Backend** — Latest Tauri version with improved stability and performance
+          - **Built-in Auto-Updater** — Background update checks, in-app download/install banner, real-time progress, auto-restart
+          - **Premium UI Refresh** — Glassmorphism redesign with refined gradients, glow effects, and polished modals
+          - **Windows 10 & 11 Compatibility** — Version detection, troubleshooter fallbacks, enhanced WMI queries
+          - **Ollama Connection Quality** — Latency monitoring, model verification, auto-recovery detection
 
-          ### Improvements
+          ### Bug Fixes
 
-          - **Performance Optimizations** — Faster startup time and reduced memory usage
-          - **Stability Fixes** — Resolved various edge cases in scan and repair workflows
-          - **UI Refinements** — Enhanced component rendering and animation performance
+          - Fixed control flow in fix functions for reliable error recovery
+          - Live Metrics panel now uses actual system data
+          - Defensive WMI queries for older Windows 10 builds
+          - Deep performance escalation with browser cache cleanup
 
           ### Downloads
 
-          - `PCFixAI-Setup-1.3.0-x64.nsis.exe` — Signed Windows installer
+          - `PCFixAI-Setup-1.4.0-x64.nsis.exe` — Signed Windows installer
 
           See the assets to download and install this version.
           releaseDraft: true

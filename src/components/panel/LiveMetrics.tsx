@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
 import { useStore } from '../../store'
+import { getRealMetrics } from '../../hooks/useTauriEvents'
 
 function useMetricHistory(key: 'cpu' | 'ram' | 'disk' | 'network') {
   const [history, setHistory] = useState<Array<{ t: number; v: number }>>([])
@@ -20,15 +21,23 @@ export function LiveMetrics() {
   const { setMetrics } = useStore()
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setMetrics({
-        cpu: Math.round(20 + Math.random() * 60),
-        ram: Math.round(40 + Math.random() * 40),
-        disk: Math.round(10 + Math.random() * 30),
-        network: Math.round(Math.random() * 80),
-      })
-    }, 1200)
-    return () => clearInterval(interval)
+    let mounted = true
+    const fetchMetrics = async () => {
+      try {
+        const m = await getRealMetrics()
+        if (mounted) {
+          setMetrics({
+            cpu: Math.round(m.cpu),
+            ram: Math.round(m.ram),
+            disk: Math.round(m.disk),
+            network: Math.round(m.network),
+          })
+        }
+      } catch {}
+    }
+    fetchMetrics()
+    const interval = setInterval(fetchMetrics, 3000)
+    return () => { mounted = false; clearInterval(interval) }
   }, [setMetrics])
 
   return (

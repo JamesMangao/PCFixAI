@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Loader2, ShieldAlert } from 'lucide-react'
 import { relaunchElevated } from '../../hooks/useTauriEvents'
 
 export function PrivilegeBanner() {
@@ -16,35 +16,32 @@ export function PrivilegeBanner() {
 
   return (
     <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 12,
-      padding: '8px 16px',
-      background: 'rgba(255, 171, 64, 0.08)',
-      borderBottom: '1px solid rgba(255, 171, 64, 0.3)',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+      padding: '7px 16px',
+      background: 'linear-gradient(135deg, rgba(251,191,36,0.06), rgba(248,113,113,0.04))',
+      borderBottom: '1px solid rgba(251,191,36,0.15)',
       flexShrink: 0,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ color: 'var(--warning)', fontSize: 14 }}>⚠</span>
-        <span style={{ fontSize: 12, color: 'var(--warning)' }}>
-          Running without administrator privileges — deep repairs disabled.
+        <ShieldAlert size={14} style={{ color: '#fbbf24' }} strokeWidth={1.8} />
+        <span style={{ fontSize: 11, color: '#fbbf24', fontWeight: 500 }}>
+          Running without administrator privileges — deep repairs disabled
         </span>
       </div>
       <button
         onClick={handleRelaunch}
         disabled={loading}
         style={{
-          padding: '4px 12px',
-          background: 'transparent',
-          border: '1px solid rgba(255, 171, 64, 0.5)',
+          padding: '4px 14px',
+          background: 'rgba(251,191,36,0.08)',
+          border: '1px solid rgba(251,191,36,0.25)',
           borderRadius: 'var(--r1)',
-          color: 'var(--warning)',
-          fontSize: 11,
-          fontWeight: 600,
+          color: '#fbbf24',
+          fontSize: 11, fontWeight: 600,
           cursor: loading ? 'not-allowed' : 'pointer',
           flexShrink: 0,
           display: 'flex', alignItems: 'center', gap: 4,
+          transition: 'all 150ms',
         }}
       >
         {loading && <Loader2 size={11} className="spin" />}

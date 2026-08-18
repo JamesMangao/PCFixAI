@@ -56,15 +56,22 @@ export function WingetManager() {
     setLog(prev => [...prev, 'Downloading winget installer...'])
     try {
       const code = await runRawCommand('powershell', [
-        '-NoProfile', '-Command',
-        'Invoke-WebRequest -Uri "https://github.com/microsoft/winget-cli/releases/latest/download/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -OutFile "$env:TEMP\\winget.msixbundle"; Add-AppxPackage -Path "$env:TEMP\\winget.msixbundle" -ForceApplicationShutdown'
+        '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command',
+        '$url = "https://github.com/microsoft/winget-cli/releases/latest/download/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"; ' +
+        '$dest = "$env:TEMP\\winget.msixbundle"; ' +
+        'try { Invoke-WebRequest -Uri $url -OutFile $dest -UseBasicParsing -ErrorAction Stop; ' +
+        '  Write-Output "Downloaded"; Add-AppxPackage -Path $dest -ForceApplicationShutdown; ' +
+        '  Remove-Item $dest -Force -ErrorAction SilentlyContinue; ' +
+        '  Write-Output "Installed" } catch { ' +
+        '  if (Test-Path $dest) { Remove-Item $dest -Force -ErrorAction SilentlyContinue }; ' +
+        '  Write-Error $_.Exception.Message; exit 1 }'
       ])
       if (code === 0) {
         setLog(prev => [...prev, '✅ Winget installed successfully'])
         setInstalled(true)
         await listUpgrades()
       } else {
-        setLog(prev => [...prev, '❌ Installation failed. Try installing from Microsoft Store manually.'])
+        setLog(prev => [...prev, '❌ Installation failed. Try installing App Installer from Microsoft Store manually.'])
       }
     } catch (e) {
       setLog(prev => [...prev, `❌ Error: ${e instanceof Error ? e.message : String(e)}`])

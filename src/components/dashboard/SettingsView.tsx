@@ -10,8 +10,7 @@ export function SettingsView() {
 
   const settingsSections = [
     {
-      title: 'Appearance',
-      icon: Paintbrush,
+      title: 'Appearance', icon: Paintbrush,
       items: [
         { name: 'Theme', type: 'select', value: settings.theme, onChange: (v: string) => updateSettings({ theme: v }),
           options: [
@@ -25,11 +24,12 @@ export function SettingsView() {
       ]
     },
     {
-      title: 'AI Diagnostics',
-      icon: Cpu,
+      title: 'AI Diagnostics', icon: Cpu,
       items: [
-        { name: 'Local Model Execution', type: 'toggle', value: settings.localModelExecution, desc: 'Keep all diagnostic logic locally on device', onChange: () => toggle('localModelExecution') },
-        { name: 'Auto-Fix Severity Threshold', type: 'select', value: settings.autoFixThreshold === 'high' ? 'High & Critical' : 'All Issues', onChange: (v: string) => updateSettings({ autoFixThreshold: v }),
+        { name: 'Local Model Execution', type: 'toggle', value: settings.localModelExecution,
+          desc: 'Keep diagnostic logic locally on device', onChange: () => toggle('localModelExecution') },
+        { name: 'Auto-Fix Severity Threshold', type: 'select', value: settings.autoFixThreshold === 'high' ? 'High & Critical' : 'All Issues',
+          onChange: (v: string) => updateSettings({ autoFixThreshold: v }),
           options: [
             { value: 'High & Critical', label: 'High & Critical' },
             { value: 'All Issues', label: 'All Issues' },
@@ -38,33 +38,31 @@ export function SettingsView() {
       ]
     },
     {
-      title: 'Ollama AI',
-      icon: Bot,
+      title: 'Ollama AI', icon: Bot,
       items: [
         { name: 'Status', type: 'info', value: ollamaStatus === 'ready' ? 'Connected' : ollamaStatus === 'checking' ? 'Checking...' : 'Not connected',
-          desc: ollamaStatus === 'ready' ? `Using ${settings.ollamaModel} for AI responses` : 'Install Ollama for AI-powered chat responses' },
+          desc: ollamaStatus === 'ready' ? `Using ${settings.ollamaModel}` : 'Install Ollama for AI-powered chat' },
         { name: 'Model Name', type: 'input', value: settings.ollamaModel,
-          desc: 'Ollama model to use (e.g., llama3.2:3b, phi3:mini)',
+          desc: 'Ollama model (e.g., llama3.2:3b, phi3:mini)',
           onChange: (v: string) => updateSettings({ ollamaModel: v }) },
       ]
     },
     {
-      title: 'System Integration',
-      icon: Shield,
+      title: 'System Integration', icon: Shield,
       items: [
-        { name: 'Create Restore Points Automatically', type: 'toggle', value: settings.autoRestorePoints, onChange: () => toggle('autoRestorePoints'),
-          desc: 'Create a restore point before any system changes' },
-        { name: 'Run Background Scans', type: 'toggle', value: settings.backgroundScans, onChange: () => toggle('backgroundScans'),
+        { name: 'Auto Restore Points', type: 'toggle', value: settings.autoRestorePoints, onChange: () => toggle('autoRestorePoints'),
+          desc: 'Create a restore point before system changes' },
+        { name: 'Background Scans', type: 'toggle', value: settings.backgroundScans, onChange: () => toggle('backgroundScans'),
           desc: 'Periodically scan for issues in the background' },
       ]
     },
     {
-      title: 'Notifications & Logging',
-      icon: Bell,
+      title: 'Notifications & Logging', icon: Bell,
       items: [
         { name: 'Show Notifications', type: 'toggle', value: settings.notifications, onChange: () => toggle('notifications'),
-          desc: 'Show desktop notifications for scan results and fixes' },
-        { name: 'Log Retention', type: 'select', value: settings.logRetention + ' days', onChange: (v: string) => updateSettings({ logRetention: parseInt(v) }),
+          desc: 'Desktop notifications for scan results' },
+        { name: 'Log Retention', type: 'select', value: settings.logRetention + ' days',
+          onChange: (v: string) => updateSettings({ logRetention: parseInt(v) }),
           options: [
             { value: '7', label: '7 days' },
             { value: '30', label: '30 days' },
@@ -78,50 +76,82 @@ export function SettingsView() {
 
   return (
     <div style={{
-      width: '100%', maxWidth: 800, margin: '0 auto', padding: 'var(--s8)',
-      display: 'flex', flexDirection: 'column', gap: 'var(--s6)', height: '100%'
+      width: '100%', maxWidth: 800, margin: '0 auto', padding: 32,
+      display: 'flex', flexDirection: 'column', gap: 24, height: '100%',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s3)' }}>
-        <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--accent-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Settings size={24} color="var(--accent)" />
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{
+          width: 44, height: 44, borderRadius: 12,
+          background: 'linear-gradient(135deg, rgba(0,212,255,0.1), rgba(0,212,255,0.04))',
+          border: '1px solid rgba(0,212,255,0.15)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Settings size={22} color="#00d4ff" strokeWidth={1.8} />
         </div>
         <div>
-          <h1 style={{ fontSize: 24, margin: 0, fontWeight: 600 }}>Settings</h1>
-          <span style={{ color: 'var(--text-secondary)', fontSize: 14 }}>Manage your application preferences</span>
+          <h1 style={{
+            fontSize: 22, margin: 0, fontWeight: 700,
+            background: 'linear-gradient(135deg, #ffffff, #c0d0e4)',
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+          }}>
+            Settings
+          </h1>
+          <span style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
+            Manage your application preferences
+          </span>
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s6)' }}>
+      {/* Sections */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {settingsSections.map(section => {
           const Icon = section.icon
           return (
             <div key={section.title} style={{
-              background: 'var(--bg-elevated)', border: '1px solid var(--border-mid)', borderRadius: 'var(--r3)', overflow: 'hidden'
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-mid)',
+              borderRadius: 'var(--r3)',
+              overflow: 'hidden',
+              boxShadow: 'var(--shadow-xs)',
             }}>
-              <div style={{ padding: 'var(--s4)', borderBottom: '1px solid var(--border-dim)', background: 'var(--bg-surface)', display: 'flex', alignItems: 'center', gap: 'var(--s2)' }}>
-                <Icon size={18} color="var(--accent)" />
-                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>{section.title}</h3>
+              <div style={{
+                padding: '14px 18px',
+                borderBottom: '1px solid var(--border-dim)',
+                background: 'rgba(255,255,255,0.015)',
+                display: 'flex', alignItems: 'center', gap: 10,
+              }}>
+                <Icon size={16} color="#00d4ff" strokeWidth={1.8} />
+                <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+                  {section.title}
+                </h3>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {section.items.map((item: any, idx: number) => (
                   <div key={item.name} style={{
-                    padding: 'var(--s4)', borderBottom: idx < section.items.length - 1 ? '1px solid var(--border-dim)' : 'none',
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+                    padding: '14px 18px',
+                    borderBottom: idx < section.items.length - 1 ? '1px solid var(--border-dim)' : 'none',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   }}>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 500 }}>{item.name}</div>
-                      {item.desc && <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 'var(--s1)' }}>{item.desc}</div>}
+                      <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>{item.name}</div>
+                      {item.desc && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>{item.desc}</div>}
                     </div>
                     {item.type === 'toggle' ? (
                       <div onClick={item.onChange} style={{
-                        width: 44, height: 24, borderRadius: 12, background: item.value ? 'var(--accent)' : 'var(--bg-surface)',
-                        border: item.value ? 'none' : '1px solid var(--border-mid)', position: 'relative', cursor: 'pointer',
-                        transition: 'all 0.2s'
+                        width: 42, height: 22, borderRadius: 11,
+                        background: item.value ? 'var(--accent)' : 'rgba(255,255,255,0.06)',
+                        border: item.value ? 'none' : '1px solid var(--border-mid)',
+                        position: 'relative', cursor: 'pointer', transition: 'all 200ms',
+                        boxShadow: item.value ? '0 0 12px rgba(0,212,255,0.2)' : 'none',
                       }}>
                         <div style={{
-                          width: 18, height: 18, borderRadius: '50%', background: 'white',
-                          position: 'absolute', top: 3, left: item.value ? 23 : 3, transition: 'all 0.2s',
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          width: 16, height: 16, borderRadius: '50%',
+                          background: 'white',
+                          position: 'absolute', top: item.value ? 3 : 2.5,
+                          left: item.value ? 23 : 3,
+                          transition: 'all 200ms var(--ease-spring)',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
                         }} />
                       </div>
                     ) : item.type === 'input' ? (
@@ -130,15 +160,27 @@ export function SettingsView() {
                         value={item.value}
                         onChange={(e) => item.onChange?.(e.target.value)}
                         style={{
-                          background: 'var(--bg-surface)', border: '1px solid var(--border-mid)', color: 'var(--text-primary)',
-                          padding: '4px 8px', borderRadius: 6, fontSize: 13, outline: 'none', width: 180,
+                          background: 'rgba(255,255,255,0.04)',
+                          border: '1px solid var(--border-mid)',
+                          color: 'var(--text-primary)',
+                          padding: '6px 10px', borderRadius: 'var(--r1)',
+                          fontSize: 12, outline: 'none', width: 180,
+                          transition: 'border-color 150ms',
                         }}
+                        onFocus={(e) => e.currentTarget.style.borderColor = 'var(--accent)'}
+                        onBlur={(e) => e.currentTarget.style.borderColor = 'var(--border-mid)'}
                       />
                     ) : item.type === 'info' ? (
                       <span style={{
                         fontSize: 12, fontWeight: 500,
-                        color: item.value === 'Connected' ? 'var(--success)' : 'var(--text-muted)',
+                        color: item.value === 'Connected' ? '#34d399' : 'var(--text-muted)',
+                        display: 'flex', alignItems: 'center', gap: 6,
                       }}>
+                        <div style={{
+                          width: 6, height: 6, borderRadius: '50%',
+                          background: item.value === 'Connected' ? '#34d399' : 'var(--text-muted)',
+                          boxShadow: item.value === 'Connected' ? '0 0 6px rgba(52,211,153,0.4)' : 'none',
+                        }} />
                         {item.value}
                       </span>
                     ) : (
@@ -146,9 +188,14 @@ export function SettingsView() {
                         value={item.value}
                         onChange={(e) => item.onChange?.(e.target.value)}
                         style={{
-                          background: 'var(--bg-surface)', border: '1px solid var(--border-mid)', color: 'var(--text-primary)',
-                          padding: '4px 8px', borderRadius: 6, fontSize: 13, outline: 'none'
-                        }}>
+                          background: 'rgba(255,255,255,0.04)',
+                          border: '1px solid var(--border-mid)',
+                          color: 'var(--text-primary)',
+                          padding: '6px 10px', borderRadius: 'var(--r1)',
+                          fontSize: 12, outline: 'none',
+                          cursor: 'pointer',
+                        }}
+                      >
                         {item.options?.map((opt: any) => (
                           <option key={opt.value} value={opt.value}>{opt.label}</option>
                         ))}
@@ -162,24 +209,29 @@ export function SettingsView() {
         })}
       </div>
 
+      {/* Reset */}
       <div style={{
-        background: 'var(--bg-elevated)', border: '1px solid var(--border-mid)', borderRadius: 'var(--r3)',
-        padding: 'var(--s4)', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+        background: 'var(--bg-elevated)',
+        border: '1px solid var(--border-mid)',
+        borderRadius: 'var(--r3)',
+        padding: 16,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        boxShadow: 'var(--shadow-xs)',
       }}>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 500 }}>Reset All Settings</div>
-          <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 'var(--s1)' }}>Restore all settings to their default values</div>
+          <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>Reset All Settings</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>Restore all settings to defaults</div>
         </div>
         <button
           onClick={() => { if (window.confirm('Reset all settings to defaults?')) updateSettings({ compactMode: false, localModelExecution: true, autoFixThreshold: 'high', autoRestorePoints: true, backgroundScans: false, theme: 'dark', notifications: true, logRetention: 30, ollamaModel: 'llama3.2:3b' }) }}
           style={{
-            padding: '6px 14px', background: 'transparent',
-            border: '1px solid var(--danger)', borderRadius: 'var(--r2)',
-            color: 'var(--danger)', fontSize: 12, fontWeight: 600,
-            cursor: 'pointer', transition: 'all 0.2s',
+            padding: '6px 16px', background: 'transparent',
+            border: '1px solid rgba(248,113,113,0.25)', borderRadius: 'var(--r2)',
+            color: '#f87171', fontSize: 12, fontWeight: 600,
+            cursor: 'pointer', transition: 'all 150ms',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--danger)'; e.currentTarget.style.color = 'white' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--danger)' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(248,113,113,0.06)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
         >
           Reset Defaults
         </button>
