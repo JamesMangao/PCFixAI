@@ -4,7 +4,7 @@ import { Sparkles, Check, X } from 'lucide-react'
 import { useStore } from '../../store'
 
 const STORAGE_KEY = 'pcfixai_update_notes_version'
-const CURRENT_VERSION = '1.4.0'
+const CURRENT_VERSION = '1.5.0'
 
 interface UpdateNote {
   category: string
@@ -15,52 +15,60 @@ interface UpdateNote {
 
 const UPDATE_NOTES: UpdateNote[] = [
   {
-    category: 'Built-in Auto-Updater',
-    icon: '🔄',
-    color: '#34d399',
+    category: 'Security & Virus Scanner',
+    icon: '🛡️',
+    color: '#ef4444',
     items: [
-      'Background update checks every 4 hours (plus on startup)',
-      'In-app update banner with download, install, skip, and dismiss controls',
-      'Real-time download progress bar',
-      'Seamless auto-restart after update installation',
-      'Skip specific versions without dismissing the updater',
+      'Full Windows Defender integration with quick scan, full scan, and custom scan',
+      'View threat history with detection timestamps and actions taken',
+      'One-click threat removal with automatic signature updates',
+      'Enable all protection features (real-time, cloud, tamper protection)',
+      'Microsoft Malicious Software Removal Tool (MRT) launcher',
     ],
   },
   {
-    category: 'Premium UI Refresh',
-    icon: '✨',
+    category: 'Event Log & BSOD Analyzer',
+    icon: '📋',
+    color: '#f59e0b',
+    items: [
+      'Parse critical system errors from the last 30 days',
+      'Dedicated BSOD/BugCheck event detection with crash timestamps',
+      'Application error tracking from the last 7 days',
+      'Smart filtering to surface the most important events',
+    ],
+  },
+  {
+    category: 'Power & Sleep Management',
+    icon: '⚡',
     color: '#a78bfa',
     items: [
-      'Redesigned glassmorphism interface with refined gradients and shadows',
-      'Added maximize/restore button to the window title bar',
-      'Premium chat bubbles with refined visual hierarchy',
-      'Polished dashboard cards with hover effects and glow accents',
-      'New "What\'s New" update notes shown on first launch',
+      'Switch between High Performance, Balanced, Power Saver, and Ultimate Performance plans',
+      'Enable/disable hibernation to save disk space (hiberfil.sys)',
+      'View and configure sleep/hibernate timeout settings',
+      'Generate detailed energy usage reports',
     ],
   },
   {
-    category: 'Windows 10 & 11 Compatibility',
-    icon: '🖥️',
+    category: 'Performance Improvements',
+    icon: '🚀',
     color: '#00d4ff',
     items: [
-      'Improved Windows 10 support with automatic winget detection and installation guidance',
-      'Windows 11 troubleshooter fallbacks — modern Settings pages open when msdt.exe is unavailable (Win11 24H2+)',
-      'Windows version detection now distinguishes between Windows 10 and Windows 11 builds',
-      'Enhanced WMI queries with better error handling for older Windows 10 builds',
-      'Browser cache cleanup expanded to include Brave, Vivaldi, Opera, and Service Worker caches',
+      'Scans are now ~60% faster — all 6 diagnostic checks run in parallel',
+      'Health history tracking with trend data saved over time',
+      'Exportable HTML system report with all findings (saved to Desktop)',
+      'Natural language commands for virus scans, event logs, power plans, and more',
     ],
   },
   {
-    category: 'Performance & Reliability',
-    icon: '⚡',
-    color: '#fbbf24',
+    category: 'UI/UX Enhancements',
+    icon: '✨',
+    color: '#34d399',
     items: [
-      'Live Metrics panel now displays real system metrics from your hardware',
-      'Deep performance escalation now performs thorough cleanup including browser caches',
-      'Fixed control flow in fix functions for more reliable error recovery',
-      'Defensive WMI queries for disk health, RAM, disk I/O, and network counters',
-      'Network escalation emits agent-step events for status visibility',
-      'Ollama connection quality checks and model verification',
+      'Search bar across all 40+ toolkit tools — find any tool instantly',
+      'Light theme with proper contrast and reduced shadows',
+      'Keyboard shortcuts: Ctrl+1-5 to switch views, Ctrl+K for dashboard',
+      'New chat quick actions for virus scan, event logs, and power plans',
+      'Two new toolkit categories: Security & Virus Scanner, Power & Sleep Management',
     ],
   },
 ]

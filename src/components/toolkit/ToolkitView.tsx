@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { runRawCommandOutput, relaunchElevated } from '../../hooks/useTauriEvents'
 import { useStore, JobEntry } from '../../store'
@@ -6,7 +6,7 @@ import {
   Cpu, HardDrive, Wifi, Wrench, Shield, Settings,
   Battery, Trash2, RefreshCw, Download, FileText,
   Printer, AlertTriangle, Zap, Power,
-  Network, Database, Eye, Activity
+  Network, Database, Eye, Activity, Search
 } from 'lucide-react'
 import { StartupManager } from './StartupManager'
 import { ProcessManager } from './ProcessManager'
@@ -383,6 +383,174 @@ const CATEGORIES: ToolkitCategory[] = [
     ],
   },
   {
+    id: 'security',
+    label: 'Security & Virus Scanner',
+    color: '#ef4444',
+    actions: [
+      {
+        id: 'defender-status',
+        label: 'Windows Defender Status',
+        description: 'Check real-time protection, signature updates, and threat history',
+        icon: Shield,
+        color: '#ef4444',
+        command: 'powershell',
+        args: ['-NoProfile', '-Command', '$mp = Get-MpComputerStatus -ErrorAction SilentlyContinue; if ($mp) { Write-Output "RealTime: $($mp.RealTimeProtectionEnabled)"; Write-Output "AV Enabled: $($mp.AntivirusEnabled)"; Write-Output "Signatures: $($mp.AntivirusSignatureLastUpdated)"; Write-Output "QuickScan: $($mp.QuickScanEndTime)"; Write-Output "FullScan: $($mp.FullScanEndTime)" } else { Write-Output "Windows Defender not available" }'],
+      },
+      {
+        id: 'quick-scan',
+        label: 'Quick Virus Scan',
+        description: 'Run a quick Windows Defender scan (2-5 minutes)',
+        icon: Shield,
+        color: '#f97316',
+        command: 'powershell',
+        args: ['-NoProfile', '-Command', 'Start-MpScan -ScanType QuickScan; Write-Output "Quick scan completed"'],
+        confirm: 'This will start a Windows Defender quick scan. It may take 2-5 minutes.',
+      },
+      {
+        id: 'full-scan',
+        label: 'Full System Virus Scan',
+        description: 'Run a comprehensive full system scan (may take 30-60+ minutes)',
+        icon: Shield,
+        color: '#ef4444',
+        command: 'powershell',
+        args: ['-NoProfile', '-Command', 'Start-MpScan -ScanType FullScan; Write-Output "Full scan completed"'],
+        confirm: 'This will start a full Windows Defender scan of your entire system. This may take 30-60+ minutes depending on your disk size.',
+      },
+      {
+        id: 'threat-history',
+        label: 'View Threat History',
+        description: 'Show recently detected threats and their status',
+        icon: AlertTriangle,
+        color: '#fbbf24',
+        command: 'powershell',
+        args: ['-NoProfile', '-Command', '$threats = Get-MpThreatDetection -ErrorAction SilentlyContinue | Select-Object -First 15; if ($threats) { $threats | ForEach-Object { Write-Output "$($_.InitialDetectionTime) - $($_.ThreatName) - Action: $($_.ActionSuccess)" } } else { Write-Output "No threats detected in history" }'],
+      },
+      {
+        id: 'fix-threats',
+        label: 'Remove Detected Threats',
+        description: 'Quarantine/remove all detected threats and update signatures',
+        icon: Shield,
+        color: '#ef4444',
+        command: 'powershell',
+        args: ['-NoProfile', '-Command', '$threats = Get-MpThreat -ErrorAction SilentlyContinue | Where-Object { $_.ThreatID -ne 0 }; $removed = 0; foreach ($t in $threats) { try { Remove-MpThreat -ThreatID $t.ThreatID -EA Stop; $removed++ } catch {} }; Set-MpPreference -DisableRealtimeMonitoring $false -EA SilentlyContinue; Update-MpSignature -EA SilentlyContinue; Write-Output "Removed $removed threats, signatures updated"'],
+        confirm: 'This will attempt to remove all detected threats and re-enable real-time protection.',
+        adminRequired: true,
+      },
+      {
+        id: 'update-sigs',
+        label: 'Update Virus Definitions',
+        description: 'Download latest Windows Defender virus signatures',
+        icon: RefreshCw,
+        color: '#00e676',
+        command: 'powershell',
+        args: ['-NoProfile', '-Command', 'Update-MpSignature; Write-Output "Virus definitions updated"'],
+        adminRequired: true,
+      },
+      {
+        id: 'enable-protection',
+        label: 'Enable All Protection',
+        description: 'Re-enable real-time, cloud, and tamper protection',
+        icon: Shield,
+        color: '#00d4ff',
+        command: 'powershell',
+        args: ['-NoProfile', '-Command', 'Set-MpPreference -DisableRealtimeMonitoring $false -DisableBehaviorMonitoring $false -DisableIOAVProtection $false -DisableIntrusionPreventionSystem $false -DisableScriptScanning $false; Write-Output "All protection features enabled"'],
+        adminRequired: true,
+      },
+      {
+        id: 'mrt-scan',
+        label: 'Microsoft Malicious Software Removal',
+        description: 'Run the standalone MRT scanner (different from Defender)',
+        icon: Shield,
+        color: '#ff5252',
+        command: 'powershell',
+        args: ['-NoProfile', '-Command', 'if (Test-Path "$env:WINDIR\\System32\\MRT.exe") { & "$env:WINDIR\\System32\\MRT.exe" } else { Write-Output "MRT.exe not found" }'],
+      },
+    ],
+  },
+  {
+    id: 'power',
+    label: 'Power & Sleep Management',
+    color: '#a78bfa',
+    actions: [
+      {
+        id: 'power-plans',
+        label: 'View Power Plans',
+        description: 'List all available power plans and the active one',
+        icon: Power,
+        color: '#a78bfa',
+        command: 'powershell',
+        args: ['-NoProfile', '-Command', 'powercfg /list'],
+      },
+      {
+        id: 'high-perf',
+        label: 'Activate High Performance',
+        description: 'Switch to the High Performance power plan for maximum speed',
+        icon: Zap,
+        color: '#00e676',
+        command: 'powercfg',
+        args: ['/setactive', '8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c'],
+        adminRequired: true,
+      },
+      {
+        id: 'ultimate-perf',
+        label: 'Activate Ultimate Performance',
+        description: 'Enable Ultimate Performance plan (if available) for workstations',
+        icon: Zap,
+        color: '#f59e0b',
+        command: 'powershell',
+        args: ['-NoProfile', '-Command', 'powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61; powercfg /setactive e9a42b02-d5df-448d-aa00-03f14749eb61; Write-Output "Ultimate Performance activated"'],
+        adminRequired: true,
+      },
+      {
+        id: 'power-saver',
+        label: 'Activate Power Saver',
+        description: 'Switch to Power Saver to maximize battery life',
+        icon: Battery,
+        color: '#34d399',
+        command: 'powercfg',
+        args: ['/setactive', 'a1841308-3541-4fab-bc81-f71556f20b4a'],
+      },
+      {
+        id: 'hibernate-on',
+        label: 'Enable Hibernation',
+        description: 'Turn on hibernation (creates hiberfil.sys, saves RAM to disk)',
+        icon: Power,
+        color: '#60a5fa',
+        command: 'powercfg',
+        args: ['/hibernate', 'on'],
+        adminRequired: true,
+      },
+      {
+        id: 'hibernate-off',
+        label: 'Disable Hibernation',
+        description: 'Turn off hibernation and delete hiberfil.sys to free disk space',
+        icon: Trash2,
+        color: '#f87171',
+        command: 'powercfg',
+        args: ['/hibernate', 'off'],
+        adminRequired: true,
+      },
+      {
+        id: 'sleep-settings',
+        label: 'Configure Sleep Settings',
+        description: 'View and set sleep/hibernate timeouts',
+        icon: Settings,
+        color: '#94a3b8',
+        command: 'powershell',
+        args: ['-NoProfile', '-Command', 'powercfg /query SCHEME_CURRENT SUB_SLEEP STANDBYIDLE; Write-Output "---"; powercfg /query SCHEME_CURRENT SUB_SLEEP HIBERNATEIDLE'],
+      },
+      {
+        id: 'power-report',
+        label: 'Generate Power Report',
+        description: 'Create a detailed energy usage report',
+        icon: FileText,
+        color: '#a78bfa',
+        command: 'powershell',
+        args: ['-NoProfile', '-Command', 'powercfg /energy /output "$env:USERPROFILE\\Desktop\\energy_report.html"; Start-Process "$env:USERPROFILE\\Desktop\\energy_report.html"'],
+      },
+    ],
+  },
+  {
     id: 'managers',
     label: 'System Managers',
     color: '#00d4ff',
@@ -395,6 +563,21 @@ export function ToolkitView() {
   const [activeManager, setActiveManager] = useState<string>('startup')
   const [runningAction, setRunningAction] = useState<string | null>(null)
   const [actionResults, setActionResult] = useState<Record<string, { status: 'success' | 'error' | 'info', message: string, output?: string }>>({})
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const filteredCategories = useMemo(() => {
+    if (!searchQuery.trim()) return CATEGORIES
+    const q = searchQuery.toLowerCase()
+    return CATEGORIES.filter(cat =>
+      cat.label.toLowerCase().includes(q) ||
+      cat.actions.some(a => a.label.toLowerCase().includes(q) || a.description.toLowerCase().includes(q))
+    ).map(cat => ({
+      ...cat,
+      actions: cat.actions.filter(a =>
+        a.label.toLowerCase().includes(q) || a.description.toLowerCase().includes(q)
+      ),
+    }))
+  }, [searchQuery])
 
   const MANAGER_TABS = [
     { id: 'startup', label: 'Startup Programs', icon: Zap, color: '#ffab40', component: StartupManager },
@@ -503,15 +686,54 @@ export function ToolkitView() {
         }}>
           <Wrench size={22} color="white" />
         </div>
-        <div>
+        <div style={{ flex: 1 }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>PC Maintenance Toolkit</h2>
           <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>
-            30+ system tools organized by category. Click to run.
+            40+ system tools organized by category. Click to run.
           </p>
         </div>
       </motion.div>
 
-      {CATEGORIES.map((cat, catIndex) => (
+      {/* Search Bar */}
+      <motion.div
+        initial={{ opacity: 0, y: -5 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: 0.1 }}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-dim)',
+          borderRadius: 'var(--r3)',
+          padding: '8px 14px',
+        }}
+      >
+        <Search size={16} color="var(--text-muted)" />
+        <input
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          placeholder="Search tools... (e.g. virus, power, network, cleanup)"
+          style={{
+            flex: 1, background: 'transparent', border: 'none', outline: 'none',
+            color: 'var(--text-primary)', fontSize: 13, fontFamily: 'inherit',
+          }}
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            style={{
+              background: 'transparent', border: 'none', color: 'var(--text-muted)',
+              cursor: 'pointer', fontSize: 16, padding: '0 2px', lineHeight: 1,
+            }}
+          >
+            ×
+          </button>
+        )}
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+          {filteredCategories.reduce((sum, c) => sum + c.actions.length, 0)} tools
+        </span>
+      </motion.div>
+
+      {filteredCategories.map((cat, catIndex) => (
         <motion.div
           key={cat.id}
           initial={{ opacity: 0, y: 15 }}

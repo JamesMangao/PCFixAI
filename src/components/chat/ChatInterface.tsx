@@ -1,5 +1,5 @@
 import { useStore } from '../../store'
-import { Bot, User, Activity, Zap, Wifi, HardDrive, Cpu, ArrowUpCircle, Trash2 } from 'lucide-react'
+import { Bot, User, Activity, Zap, Wifi, HardDrive, Cpu, ArrowUpCircle, Trash2, Shield, FileText, Power } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLocalAI } from '../../hooks/useLocalAI'
@@ -37,6 +37,9 @@ export function ChatInterface() {
     { label: 'Fix my internet', icon: Wifi, onClick: () => sendQuickAction('Fix my internet') },
     { label: 'Boost my PC', icon: ArrowUpCircle, onClick: () => sendQuickAction('Boost my PC') },
     { label: 'Clean up disk', icon: HardDrive, onClick: () => sendQuickAction('Clean up disk space') },
+    { label: 'Virus scan', icon: Shield, onClick: () => sendQuickAction('scan for virus') },
+    { label: 'Check event logs', icon: FileText, onClick: () => sendQuickAction('event log') },
+    { label: 'Power plans', icon: Power, onClick: () => sendQuickAction('power plan') },
   ]
 
   return (

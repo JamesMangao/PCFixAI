@@ -154,3 +154,63 @@ export async function getInstalledApps(): Promise<string> {
 export async function relaunchElevated(): Promise<void> {
   await invoke('relaunch_elevated')
 }
+
+export async function checkEventLogs(): Promise<any> {
+  return invoke('check_event_logs')
+}
+
+export async function getDefenderStatus(): Promise<any> {
+  return invoke('get_defender_status')
+}
+
+export async function runVirusScan(scanType: string): Promise<any> {
+  return invoke('run_virus_scan', { scanType })
+}
+
+export async function fixThreats(): Promise<any> {
+  return invoke('fix_threats')
+}
+
+export async function getPowerPlans(): Promise<any> {
+  return invoke('get_power_plans')
+}
+
+export async function setPowerPlan(guid: string): Promise<boolean> {
+  return invoke('set_power_plan', { guid })
+}
+
+export async function getHibernationStatus(): Promise<any> {
+  return invoke('get_hibernation_status')
+}
+
+export async function toggleHibernation(enable: boolean): Promise<boolean> {
+  return invoke('toggle_hibernation', { enable })
+}
+
+export async function getNetworkProfiles(): Promise<any> {
+  return invoke('get_network_profiles')
+}
+
+export async function setNetworkProfile(interfaceName: string, category: string): Promise<boolean> {
+  return invoke('set_network_profile', { interfaceName, category })
+}
+
+export async function getBitlockerStatus(): Promise<any> {
+  return invoke('get_bitlocker_status')
+}
+
+export async function getWindowsUpdates(): Promise<any> {
+  return invoke('get_windows_updates')
+}
+
+export async function exportSystemReport(findingsJson: string): Promise<string> {
+  return invoke('export_system_report', { findingsJson })
+}
+
+export async function saveHealthSnapshot(score: number, findingsCount: number, metricsJson: string): Promise<void> {
+  return invoke('save_health_snapshot', { score, findingsCount, metricsJson })
+}
+
+export async function getHealthHistory(): Promise<any> {
+  return invoke('get_health_history')
+}

@@ -403,21 +403,22 @@ async function handleCleanDisk(): Promise<string> {
 }
 
 const FALLBACK_RESPONSES: Record<string, string> = {
-  'hello': "Hey there! 👋 I'm your PC repair assistant. Here's what I can do:\n\n🔍 **Diagnose** — Full system scan with auto-fix\n⚡ **Speed up** — Optimize startup and performance\n🌐 **Fix internet** — Network stack reset and DNS flush\n💾 **Clean disk** — Remove temp files and browser caches\n📊 **System specs** — Show your hardware details\n🛠️ **Toolkit** — 30+ advanced maintenance tools\n\nWhat would you like to do?",
-  'what can you do': "I'm a PC repair assistant that works offline-first. Here's everything I can help with:\n\n**Quick Actions:**\n• 🔍 System Scan — Detect and fix issues automatically\n• ⚡ Speed Up Startup — Clean temp files, optimize boot\n• 🌐 Fix Internet — DNS flush, Winsock reset, IP renewal\n• 🚀 Boost PC — Performance tweaks and cache cleanup\n• 🧹 Clean Disk — Free up space by removing junk files\n• 📊 System Specs — Show detailed hardware info\n\n**Advanced:**\n• 🛠️ Toolkit — 30+ maintenance tools organized by category\n• 💬 Ask me anything about PC issues — I'll give you step-by-step advice\n\nTry clicking a quick action button below!",
-  'help': "Here's how I can help you:\n\n**For Diagnostics:**\n• Type `scan` or click **One Click Diagnose**\n• I'll check disk health, network connectivity, and more\n\n**For Fixes:**\n• `speed up my startup` — Optimize boot time\n• `fix my internet` — Reset network stack\n• `boost my pc` — Performance optimization\n• `clean up disk space` — Remove junk files\n\n**For Info:**\n• `system specs` — Show your hardware details\n• `what can you do` — See all available commands\n\n**For Advanced Tools:**\n• Check the **Toolkit** tab for 30+ system utilities\n\nJust describe your issue and I'll help!",
+  'hello': "Hey there! 👋 I'm your PC repair assistant. Here's what I can do:\n\n🔍 **Diagnose** — Full system scan with auto-fix\n⚡ **Speed up** — Optimize startup and performance\n🌐 **Fix internet** — Network stack reset and DNS flush\n💾 **Clean disk** — Remove temp files and browser caches\n🛡️ **Virus scan** — Run Windows Defender scan\n📋 **Event logs** — Check for BSOD and system errors\n⚡ **Power plans** — Switch power modes\n📊 **System specs** — Show your hardware details\n🛠️ **Toolkit** — 40+ advanced maintenance tools\n\nWhat would you like to do?",
+  'what can you do': "I'm a PC repair assistant that works offline-first. Here's everything I can help with:\n\n**Quick Actions:**\n• 🔍 System Scan — Detect and fix issues automatically\n• ⚡ Speed Up Startup — Clean temp files, optimize boot\n• 🌐 Fix Internet — DNS flush, Winsock reset, IP renewal\n• 🚀 Boost PC — Performance tweaks and cache cleanup\n• 🧹 Clean Disk — Free up space by removing junk files\n• 🛡️ Virus Scan — Quick or full Windows Defender scan\n• 📋 Event Logs — Check for BSOD and critical errors\n• ⚡ Power Plans — Switch between High Performance, Balanced, etc.\n• 📊 System Specs — Show detailed hardware info\n\n**Advanced:**\n• 🛠️ Toolkit — 40+ maintenance tools organized by category\n• 💬 Ask me anything about PC issues — I'll give you step-by-step advice\n\nTry clicking a quick action button below!",
+  'help': "Here's how I can help you:\n\n**For Diagnostics:**\n• Type `scan` or click **One Click Diagnose**\n• I'll check disk health, network connectivity, and more\n\n**For Fixes:**\n• `speed up my startup` — Optimize boot time\n• `fix my internet` — Reset network stack\n• `boost my pc` — Performance optimization\n• `clean up disk space` — Remove junk files\n\n**For Security:**\n• `scan for virus` — Run Windows Defender quick scan\n• `check for malware` — Run malware detection\n\n**For Info:**\n• `system specs` — Show your hardware details\n• `event log` — Check for BSOD and system errors\n• `disk space` — See how much storage is free\n• `power plan` — View or switch power plans\n\n**For Advanced Tools:**\n• Check the **Toolkit** tab for 40+ system utilities\n\nJust describe your issue and I'll help!",
   'slow': "Your PC is running slow? Let me help diagnose and fix it:\n\n**Quick fixes:**\n• Type `boost my pc` — Cleans temp files and optimizes performance\n• Type `speed up my startup` — Reduces boot time\n• Click **Scan System** — Detects resource hogs\n\n**Common causes of slowness:**\n• Too many startup programs\n• Low disk space (less than 15% free)\n• Outdated drivers\n• Malware or bloatware\n• Fragmented HDD (less relevant for SSDs)\n\nWould you like me to run a diagnostic scan?",
-  'virus': "If you suspect malware, here's what I recommend:\n\n**Immediate steps:**\n• I can run the **Microsoft Malicious Software Removal Tool** (MRT)\n• Check the **Toolkit** tab → System Cleanup section → option [15]\n\n**For real-time protection:**\n• Windows Defender is built-in and effective\n• Run a full scan: Settings → Update & Security → Windows Security → Virus & threat protection\n\n**Warning signs:**\n• Unexpected pop-ups\n• Slow performance\n• Unknown programs in Task Manager\n• Browser redirects\n\nWould you like me to launch the MRT scanner?",
-  'blue screen': "Blue Screen of Death (BSOD) is usually caused by:\n\n**Common causes:**\n• Faulty drivers (especially GPU/RAM)\n• Overheating hardware\n• Corrupted Windows system files\n• Incompatible software\n\n**What I can do:**\n• Run `fix my internet` — Sometimes network drivers cause BSOD\n• Use **Toolkit** → System Repair (SFC + DISM)\n• Check **Drive SMART Status** for failing hardware\n\n**To get the error code:**\n• Check Settings → System → About → Advanced system settings\n• Look for 'Stop Error' in Event Viewer\n\nWould you like me to run a system repair scan?",
-  'wifi': "Having Wi-Fi issues? Let's fix it:\n\n**Quick fix:**\n• Type `fix my internet` — Flushes DNS, resets Winsock, renews IP\n\n**If that doesn't work:**\n• Check if Wi-Fi is enabled (physical switch or Fn key)\n• Restart your router (unplug for 30 seconds)\n• Use **Toolkit** → Full Network Stack Reset\n\n**Advanced:**\n• Run the Network Troubleshooter from Toolkit\n• Update network drivers via Toolkit → Auto Update Drivers\n\nWould you like me to run the network fix?",
-  'printer': "Printer problems? Here's how to fix them:\n\n**Quick steps:**\n• Use **Toolkit** → Printer Auto-Troubleshooter (option [32] in Toolkit)\n• It will: stop spooler, clear queue, restart, and launch Windows troubleshooter\n\n**Manual checks:**\n• Ensure printer is powered on and connected\n• For USB: try a different port\n• For network: verify printer IP hasn't changed\n• Check if printer is set as default\n\nWould you like me to run the printer troubleshooter?",
-  'disk space': "Need to free up disk space? Here are your options:\n\n**Quick fix:**\n• Type `clean up disk space` — Removes temp files, browser caches, recycle bin\n\n**More options (in Toolkit):**\n• Deep Disk Cleanup — Removes old Windows update files\n• Clear Windows Update Cache\n• Check what's using space: Settings → System → Storage\n\n**Tip:** Keep at least 15% free space for optimal performance.\n\nWould you like me to clean up your disk?",
+  'virus': "If you suspect malware, here's what I recommend:\n\n**Immediate steps:**\n• Type `scan for virus` — I'll run a quick Windows Defender scan\n• Type `check for malware` — Full malware detection\n• I can run the **Microsoft Malicious Software Removal Tool** (MRT)\n\n**For real-time protection:**\n• Windows Defender is built-in and effective\n• Run a full scan: Settings → Update & Security → Windows Security → Virus & threat protection\n\n**Warning signs:**\n• Unexpected pop-ups\n• Slow performance\n• Unknown programs in Task Manager\n• Browser redirects\n\nWould you like me to run a virus scan?",
+  'blue screen': "Blue Screen of Death (BSOD) is usually caused by:\n\n**Common causes:**\n• Faulty drivers (especially GPU/RAM)\n• Overheating hardware\n• Corrupted Windows system files\n• Incompatible software\n\n**What I can do:**\n• Type `event log` — I'll check for recent BSOD entries\n• Run `fix my internet` — Sometimes network drivers cause BSOD\n• Use **Toolkit** → System Repair (SFC + DISM)\n• Check **Drive SMART Status** for failing hardware\n\n**To get the error code:**\n• Check Settings → System → About → Advanced system settings\n• Look for 'Stop Error' in Event Viewer\n\nWould you like me to check the event logs for BSOD details?",
+  'wifi': "Having Wi-Fi issues? Let's fix it:\n\n**Quick fix:**\n• Type `fix my internet` — Flushes DNS, resets Winsock, renews IP\n\n**Diagnostics:**\n• Type `network diagnostics` — I'll check your connection and adapters\n\n**If that doesn't work:**\n• Check if Wi-Fi is enabled (physical switch or Fn key)\n• Restart your router (unplug for 30 seconds)\n• Use **Toolkit** → Full Network Stack Reset\n\n**Advanced:**\n• Run the Network Troubleshooter from Toolkit\n• Update network drivers via Toolkit → Auto Update Drivers\n\nWould you like me to run the network fix?",
+  'printer': "Printer problems? Here's how to fix them:\n\n**Quick steps:**\n• Use **Toolkit** → Driver & Printer Tools → Printer Auto-Troubleshooter\n• It will: stop spooler, clear queue, restart, and launch Windows troubleshooter\n\n**Manual checks:**\n• Ensure printer is powered on and connected\n• For USB: try a different port\n• For network: verify printer IP hasn't changed\n• Check if printer is set as default\n\nWould you like me to run the printer troubleshooter?",
+  'disk space': "Need to free up disk space? Here are your options:\n\n**Quick fix:**\n• Type `clean up disk space` — Removes temp files, browser caches, recycle bin\n\n**Check first:**\n• Type `disk space` — See how much space is available\n\n**More options (in Toolkit):**\n• Deep Disk Cleanup — Removes old Windows update files\n• Clear Windows Update Cache\n• Check what's using space: Settings → System → Storage\n\n**Tip:** Keep at least 15% free space for optimal performance.\n\nWould you like me to clean up your disk?",
+  'power plan': "Want to switch your power plan? Here are the options:\n\n**Available plans:**\n• **High Performance** — Maximum speed (uses more power)\n• **Balanced** — Default, auto-adjusts based on workload\n• **Power Saver** — Saves battery, reduces performance\n• **Ultimate Performance** — Workstation-level performance (if available)\n\n**To switch:**\n• Type `high performance` or `power saver`\n• Or use **Toolkit** → Power & Sleep Management\n\n**Tip:** High Performance is great for desktops, but use Power Saver on laptops to extend battery life.",
   'thank': "You're welcome! I'm here whenever you need help with your PC. 💪",
   'thanks': "Happy to help! Let me know if you need anything else.",
   'bye': "Goodbye! Take care of your PC. 🖥️",
   'goodbye': "See you later! Your PC is in good hands.",
   'who are you': "I'm **PCFixAI** — your offline-first PC repair assistant.\n\nI can diagnose issues, run fixes, and provide guidance. If Ollama is installed, I can also provide AI-powered advice.\n\nWhat can I help you with today?",
-  'what is this': "This is **PCFixAI** — a PC repair tool that runs mostly offline.\n\n**What it does:**\n• Scans your system for common issues\n• Auto-fixes problems when possible\n• Provides step-by-step guidance\n• Includes 30+ maintenance tools\n• Optional: AI-powered chat with Ollama\n\nTry the quick actions below or explore the Toolkit!",
+  'what is this': "This is **PCFixAI** — a PC repair tool that runs mostly offline.\n\n**What it does:**\n• Scans your system for common issues\n• Auto-fixes problems when possible\n• Provides step-by-step guidance\n• Includes 40+ maintenance tools\n• Optional: AI-powered chat with Ollama\n\nTry the quick actions below or explore the Toolkit!",
 }
 
 function findFallback(content: string): string | null {
@@ -643,6 +644,111 @@ export function useLocalAI() {
         const msg = '❌ Disk cleanup failed.'
         updateLastChatMessage(msg)
         logJob('Chat', 'Clean Up Disk Space', 'failed', msg, 1)
+      }
+      return
+    }
+
+    // Virus scan commands
+    if (q.includes('scan for virus') || q.includes('virus scan') || q.includes('malware scan') || q.includes('scan for malware') || q.includes('check for virus')) {
+      const id = Date.now().toString() + '-virus'
+      appendChatMessage({ id, role: 'assistant', content: '🛡️ **Running quick virus scan** — Using Windows Defender...' })
+      try {
+        const { output: raw } = await runRawCommandOutput('powershell', [
+          '-NoProfile', '-Command',
+          'Start-MpScan -ScanType QuickScan; Write-Output "Quick scan completed"'
+        ])
+        const { output: threatRaw } = await runRawCommandOutput('powershell', [
+          '-NoProfile', '-Command',
+          '$t = Get-MpThreatDetection -EA SilentlyContinue | Select-Object -First 5 ThreatName, InitialDetectionTime; if ($t) { $t | ForEach-Object { Write-Output "$($_.ThreatName) at $($_.InitialDetectionTime)" } } else { Write-Output "No threats found" }'
+        ])
+        updateLastChatMessage(`🛡️ **Virus Scan Complete**\n\n${raw.includes('completed') ? '✅ Quick scan finished successfully' : '⚠️ Scan completed with issues'}\n\n**Threat Status:**\n${threatRaw.trim() || 'No threats detected'}\n\n💡 **Tip:** For a deeper scan, go to **Toolkit → Security & Virus Scanner → Full System Virus Scan**.`)
+        logJob('Security', 'Quick Virus Scan', 'success', raw)
+      } catch (e) {
+        const msg = '❌ Virus scan failed. Make sure Windows Defender is enabled.'
+        updateLastChatMessage(msg)
+        logJob('Security', 'Quick Virus Scan', 'failed', msg, 1)
+      }
+      return
+    }
+
+    // Event log / BSOD analysis
+    if (q.includes('event log') || q.includes('crash log') || q.includes('bsod') || q.includes('blue screen log') || q.includes('system errors') || q.includes('check errors')) {
+      const id = Date.now().toString() + '-evtlog'
+      appendChatMessage({ id, role: 'assistant', content: '📋 **Analyzing event logs** — Checking recent system errors and crashes...' })
+      try {
+        const { output: raw } = await runRawCommandOutput('powershell', [
+          '-NoProfile', '-Command',
+          '$events = @(); $critical = Get-WinEvent -FilterHashtable @{LogName="System"; Level=1; StartTime=(Get-Date).AddDays(-14)} -MaxEvents 20 -EA SilentlyContinue; foreach ($e in $critical) { $events += "$($e.TimeCreated.ToString("MM-dd HH:mm")) [$($e.ProviderName)] $($e.Message.Substring(0,[Math]::Min(120,$e.Message.Length)))" }; $bsod = Get-WinEvent -FilterHashtable @{LogName="System"; ProviderName="Microsoft-Windows-WER-SystemErrorReporting"} -MaxEvents 5 -EA SilentlyContinue; foreach ($e in $bsod) { $events += "BSOD: $($e.TimeCreated.ToString("MM-dd HH:mm")) — $($e.Message.Substring(0,[Math]::Min(150,$e.Message.Length)))" }; if ($events.Count -gt 0) { $events | Select-Object -First 10 | ForEach-Object { Write-Output $_ } } else { Write-Output "No critical events found in the last 14 days" }'
+        ])
+        const lines = raw.trim().split('\n').filter((l: string) => l.trim())
+        const hasEvents = lines.length > 0 && !lines[0].includes('No critical')
+        updateLastChatMessage(`📋 **Event Log Analysis** (Last 14 days)\n\n${hasEvents ? `Found ${lines.length} critical event(s):\n\n${lines.map((l: string) => '• ' + l).join('\n')}` : '✅ No critical events or BSOD crashes found in the last 14 days.\n\nYour system looks stable!'}\n\n💡 **Tip:** For more details, check **Toolkit → Security & Virus Scanner** or run a full system scan.`)
+        logJob('Info', 'Event Log Analysis', 'success', raw)
+      } catch (e) {
+        const msg = '❌ Failed to read event logs.'
+        updateLastChatMessage(msg)
+        logJob('Info', 'Event Log Analysis', 'failed', msg, 1)
+      }
+      return
+    }
+
+    // Power plan commands
+    if (q.includes('power plan') || q.includes('switch power') || q.includes('high performance') || q.includes('power saver') || q.includes('battery mode')) {
+      const id = Date.now().toString() + '-pwr'
+      appendChatMessage({ id, role: 'assistant', content: '⚡ **Managing power plan**...' })
+      try {
+        if (q.includes('high performance')) {
+          await runRawCommand('powercfg', ['/setactive', '8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c'])
+          updateLastChatMessage('⚡ **High Performance** power plan activated!\n\nYour PC will now prioritize performance over power savings. CPU will run at higher clock speeds.\n\n💡 **Tip:** Switch back to Balanced or Power Saver on laptops to save battery.')
+        } else if (q.includes('power saver')) {
+          await runRawCommand('powercfg', ['/setactive', 'a1841308-3541-4fab-bc81-f71556f20b4a'])
+          updateLastChatMessage('🔋 **Power Saver** plan activated!\n\nCPU will throttle to save battery life. Best for when you need maximum battery runtime.')
+        } else {
+          const { output: raw } = await runRawCommandOutput('powercfg', ['/list'])
+          updateLastChatMessage(`⚡ **Power Plans:**\n\n${raw}\n\n💡 Say **"high performance"** or **"power saver"** to switch plans.`)
+        }
+        logJob('Power', 'Power Plan Management', 'success', 'Power plan updated')
+      } catch (e) {
+        updateLastChatMessage('❌ Failed to manage power plan. Try the Toolkit → Power & Sleep Management.')
+        logJob('Power', 'Power Plan Management', 'failed', String(e), 1)
+      }
+      return
+    }
+
+    // Disk space questions
+    if (q.includes('how much space') || q.includes('disk space') || q.includes('storage left') || q.includes('free space') || q.includes('how full')) {
+      const id = Date.now().toString() + '-diskq'
+      appendChatMessage({ id, role: 'assistant', content: '💾 **Checking disk space**...' })
+      try {
+        const { output: raw } = await runRawCommandOutput('powershell', [
+          '-NoProfile', '-Command',
+          'Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3" | Select-Object DeviceID, @{N="FreeGB";E={[math]::Round($_.FreeSpace/1GB,2)}}, @{N="TotalGB";E={[math]::Round($_.Size/1GB,2)}} | ForEach-Object { Write-Output "$($_.DeviceID) $($_.FreeGB) GB free of $($_.TotalGB) GB" }'
+        ])
+        updateLastChatMessage(`💾 **Disk Space:**\n\n${raw.trim()}\n\n💡 Say **"clean up disk space"** to remove temp files and browser caches.`)
+        logJob('Info', 'Disk Space Check', 'success', raw)
+      } catch {
+        updateLastChatMessage('❌ Could not check disk space.')
+      }
+      return
+    }
+
+    // Network speed / wifi issues
+    if (q.includes('wifi') || q.includes('wifi') || q.includes('network slow') || q.includes('internet slow') || q.includes('disconnect')) {
+      const id = Date.now().toString() + '-wifi'
+      appendChatMessage({ id, role: 'assistant', content: '🌐 **Diagnosing network issues**...' })
+      try {
+        const { output: pingRaw } = await runRawCommandOutput('powershell', [
+          '-NoProfile', '-Command',
+          '$ping = Test-Connection -ComputerName 8.8.8.8 -Count 4 -EA SilentlyContinue; if ($ping) { $avg = ($ping | Measure-Object -Property Latency -Average).Average; Write-Output "Ping to 8.8.8.8: $($avg)ms avg" } else { Write-Output "Cannot reach 8.8.8.8 — no internet" }'
+        ])
+        const { output: adapterRaw } = await runRawCommandOutput('powershell', [
+          '-NoProfile', '-Command',
+          'Get-NetAdapter | Where-Object Status -eq "Up" | Select-Object Name, LinkSpeed, InterfaceDescription | ForEach-Object { Write-Output "$($_.Name): $($_.LinkSpeed) ($($_.InterfaceDescription))" }'
+        ])
+        updateLastChatMessage(`🌐 **Network Diagnostics:**\n\n${pingRaw.trim()}\n\n**Active Adapters:**\n${adapterRaw.trim() || 'No active adapters found'}\n\n💡 Say **"fix my internet"** to flush DNS, reset Winsock, and renew IP.`)
+        logJob('Info', 'Network Diagnostics', 'success', pingRaw)
+      } catch {
+        updateLastChatMessage('❌ Could not run network diagnostics.')
       }
       return
     }

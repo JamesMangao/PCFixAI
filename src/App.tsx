@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from './store'
 import { useTauriEvents } from './hooks/useTauriEvents'
@@ -20,10 +21,32 @@ import './styles/globals.css'
 export default function App() {
   useTauriEvents()
   useUpdaterAutoCheck()
-  const { mode, isElevated } = useStore()
+  const { mode, isElevated, settings } = useStore()
+
+  const themeClass = settings.theme === 'light' ? 'theme-light' : settings.theme === 'midnight' ? 'theme-midnight' : ''
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+K: Quick scan
+      if (e.ctrlKey && e.key === 'k') {
+        e.preventDefault()
+        useStore.getState().setMode('dashboard')
+      }
+      // Ctrl+1-5: Switch views
+      if (e.ctrlKey && e.key >= '1' && e.key <= '5') {
+        e.preventDefault()
+        const modes = ['dashboard', 'toolkit', 'diagnose', 'history', 'settings'] as const
+        const idx = parseInt(e.key) - 1
+        if (modes[idx]) useStore.getState().setMode(modes[idx])
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   return (
-    <div style={{
+    <div className={themeClass} style={{
       display: 'flex',
       flexDirection: 'column',
       height: '100vh',

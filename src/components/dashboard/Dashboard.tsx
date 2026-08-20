@@ -2,10 +2,10 @@ import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from 'recharts'
 import { useStore } from '../../store'
-import { startScan, getRealMetrics, runRawCommand } from '../../hooks/useTauriEvents'
+import { startScan, getRealMetrics, runRawCommand, exportSystemReport, saveHealthSnapshot } from '../../hooks/useTauriEvents'
 import { FindingsList } from './FindingsList'
 import { AgentFeed } from './AgentFeed'
-import { Activity, Shield, HardDrive, Wifi, Zap, ChevronRight } from 'lucide-react'
+import { Activity, Shield, HardDrive, Wifi, Zap, ChevronRight, FileText } from 'lucide-react'
 import { JobEntry } from '../../store'
 
 function useMetricHistory(key: 'cpu' | 'ram' | 'disk' | 'network') {
@@ -111,6 +111,13 @@ export function Dashboard() {
         output: [summary], exitCode: 0,
       }
       useStore.getState().updateJob(job)
+
+      // Save health snapshot for trend tracking
+      const score = getHealthScore().score
+      const m = useStore.getState().metrics
+      try {
+        await saveHealthSnapshot(score, total, JSON.stringify(m))
+      } catch {}
     } catch {
       const job: JobEntry = {
         id: Date.now().toString(), timestamp: new Date().toISOString(),
@@ -247,6 +254,31 @@ export function Dashboard() {
             Scan Findings
           </h3>
           <FindingsList findings={findings} />
+          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <motion.button
+              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+              onClick={async () => {
+                try {
+                  const path = await exportSystemReport(JSON.stringify(findings))
+                  const job: JobEntry = {
+                    id: Date.now().toString(), timestamp: new Date().toISOString(),
+                    category: 'Report', action: 'Export System Report', status: 'success',
+                    output: [`Report saved to: ${path}`], exitCode: 0,
+                  }
+                  useStore.getState().updateJob(job)
+                } catch {}
+              }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '7px 14px', background: 'transparent',
+                border: '1px solid rgba(0,212,255,0.3)', borderRadius: 'var(--r2)',
+                color: 'var(--accent)', fontSize: 12, fontWeight: 500,
+                cursor: 'pointer', transition: 'all var(--transition-fast)',
+              }}
+            >
+              <FileText size={13} /> Export Report
+            </motion.button>
+          </div>
         </motion.div>
       )}
 
