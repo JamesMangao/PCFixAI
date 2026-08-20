@@ -4,7 +4,7 @@ import { Sparkles, Check, X } from 'lucide-react'
 import { useStore } from '../../store'
 
 const STORAGE_KEY = 'pcfixai_update_notes_version'
-const CURRENT_VERSION = '1.5.0'
+const CURRENT_VERSION = '1.4.0'
 
 interface UpdateNote {
   category: string

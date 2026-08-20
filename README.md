@@ -6,7 +6,7 @@ PCFixAI is a desktop application that diagnoses and fixes common Windows issues 
 
 ---
 
-## Latest Update — v1.5.0 (August 2026)
+## Latest Update — v1.4.0 (August 2026)
 
 ### New Security & Power Features
 
