@@ -40,27 +40,79 @@ jobs:
           tagName: v__VERSION__
           releaseName: 'PCFixAI v__VERSION__'
           releaseBody: |
-          ## PCFixAI v1.4.0
+            ## PCFixAI v1.4.0
 
-          ### What's New
+            **Intelligent PC repair and diagnostics — offline-first.** This release bundles major new security & power tools, faster parallel scans, a premium UI refresh, and a built-in auto-updater.
 
-          - **Built-in Auto-Updater** — Background update checks, in-app download/install banner, real-time progress, auto-restart
-          - **Premium UI Refresh** — Glassmorphism redesign with refined gradients, glow effects, and polished modals
-          - **Windows 10 & 11 Compatibility** — Version detection, troubleshooter fallbacks, enhanced WMI queries
-          - **Ollama Connection Quality** — Latency monitoring, model verification, auto-recovery detection
+            ### 🔐 New Security & Power Features
 
-          ### Bug Fixes
+            - **Virus Scanner** — Full Windows Defender integration with quick scan, full scan, threat history, and threat removal
+            - **Power Plan Manager** — Switch between High Performance, Balanced, Power Saver, and Ultimate Performance
+            - **Hibernation Controls** — Enable/disable hibernation and manage sleep settings
+            - **Network Profile Switcher** — Change network profiles between Public, Private, and Domain
+            - **BitLocker Status** — Check encryption status on all drives
+            - **Windows Update Manager** — View pending updates with KB numbers and severity
+            - **New Toolkit Categories** — Security & Virus Scanner (8 tools) and Power & Sleep Management (8 tools)
 
-          - Fixed control flow in fix functions for reliable error recovery
-          - Live Metrics panel now uses actual system data
-          - Defensive WMI queries for older Windows 10 builds
-          - Deep performance escalation with browser cache cleanup
+            ### 📋 Event Log & Diagnostics
 
-          ### Downloads
+            - **Event Log Analyzer** — Parse recent BSOD crashes, system errors, and warnings with smart filtering
+            - **BSOD Detection** — Dedicated BugCheck event parsing with crash timestamps and stop codes
+            - **Exportable System Report** — Generate a beautiful HTML report with all findings, saved to Desktop
+            - **Health History** — Health scores saved over time for trend tracking
+            - **Contextual Fix Suggestions** — Scan results now include actionable recommendations
 
-          - `PCFixAI-Setup-1.4.0-x64.nsis.exe` — Signed Windows installer
+            ### ⚡ Performance Improvements
 
-          See the assets to download and install this version.
+            - **Parallel Scan** — All 6 diagnostic checks now run simultaneously via `tokio::join!` (~60% faster scans)
+            - **Live Metrics Real Data** — LiveMetrics panel now uses actual backend metrics instead of random simulation
+
+            ### 🎨 UI/UX Enhancements
+
+            - **Search Across Toolkit** — Real-time search across all 40+ tools by name or description
+            - **Light Theme** — Full light theme with proper contrast and reduced shadows
+            - **Keyboard Shortcuts** — `Ctrl+1-5` to switch views, `Ctrl+K` for quick dashboard
+            - **Expanded Chat Commands** — Natural language for virus scans, event logs, power plans, disk space, and network diagnostics
+            - **New Chat Quick Actions** — Virus scan, event logs, and power plans in the chat quick actions bar
+            - **Premium UI Refresh** — Glassmorphism design system, premium title bar with custom SVG window buttons, refined sidebar, premium chat/dashboard/settings, new animations
+
+            ### 🔄 Built-in Auto-Updater
+
+            - **Background Update Checks** — Periodic checks via the Tauri updater plugin
+            - **In-App Update Banner** — Download, install, or skip updates without leaving the app; expandable release notes
+            - **Download Progress** — Real-time progress bar during download
+            - **Auto-Restart** — Seamless restart after installation; skip per version
+            - **What's New Modal** — Version-persisted release notes shown on first launch after updating
+
+            ### 🪟 Windows 10 & 11 Compatibility
+
+            - **Windows Version Detection** — Detects Windows 10 vs Windows 11 (build 22000+) via WMI
+            - **Windows 11 24H2+ Fallbacks** — Troubleshooter actions open modern Settings pages when `msdt.exe` is unavailable
+            - **Windows 10 Winget Handling** — Improved detection/installation guidance (not pre-installed)
+            - **Enhanced WMI Queries** — Better error handling for older Windows 10 builds
+            - **Expanded Browser Cleanup** — Cache sweep now covers Brave, Vivaldi, Opera, and Service Worker CacheStorage
+
+            ### 🤖 Ollama Connection Improvements
+
+            - **Connection Quality Monitoring** — Periodic latency checks with millisecond display
+            - **Model Verification** — Queries Ollama's `/api/tags` to verify the configured model is loaded
+            - **Auto-Recovery Detection** — Banner reappears automatically if Ollama stops
+            - **Status Badge** — AI Connected / Rule-based indicator in the chat header
+
+            ### 🐛 Bug Fixes
+
+            - Fixed `cfg` gate control flow in `fix_network`, `fix_os`, `fix_security`, and `run_escalation`
+            - Window maximize/restore toggle now functional in the title bar
+            - Defensive WMI queries for disk health, RAM, disk I/O, and network counters on older Windows 10 builds
+            - Network fix escalation emits agent-step event for status visibility
+            - Deep performance escalation does thorough browser cache cleanup
+
+            ### ⬇️ Downloads
+
+            - `PCFixAI-Setup-1.4.0-x64.nsis.exe` — Signed Windows installer
+            - `latest.json` — Updater signature manifest
+
+            See the assets below to download and install this version.
           releaseDraft: true
           prerelease: false
           includeUpdaterJson: true
