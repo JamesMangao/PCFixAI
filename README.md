@@ -2,7 +2,7 @@
 
 **Intelligent PC repair and diagnostics — offline-first.**
 
-[**v1.5.1**] Fixed auto-fix wiping all startup entries, added HTTP ACL scope for Ollama, real browser cache paths, working hibernation toggle, and 20+ stability patches. All features now work as intended.
+[**v1.5.0**] Fixed auto-fix wiping all startup entries, added HTTP ACL scope for Ollama, real browser cache paths, working hibernation toggle, and 20+ stability patches. All features now work as intended.
 
 Most features work offline; optional AI-powered chat via Ollama.
 
